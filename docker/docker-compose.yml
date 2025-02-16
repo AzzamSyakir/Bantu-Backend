@@ -1,0 +1,233 @@
+services:
+  #Services Container
+  auth-services:
+    container_name: auth-services
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./src/auth-service/Dockerfile
+    environment:
+      USER_HOST: user-services
+      TRANSACTION_HOST: transaction-services
+      REVIEW_HOST: review-services
+      CHAT_HOST: chat-notification-services
+      JOB_HOST: job-services
+    expose:
+      - 8080
+    ports:
+      - ${AUTH_PORT}:${AUTH_PORT}
+      - ${AUTH_GRPC_PORT}:${AUTH_GRPC_PORT}
+    depends_on:
+      - auth-db
+    volumes:
+      - ../src/auth-service/:/app/src/auth-service/
+
+  user-services:
+    container_name: user-services
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./src/user-service/Dockerfile
+    environment:
+      POSTGRES_HOST: user-db
+      AUTH_HOST: auth-services
+    expose:
+      - 8080
+    ports:
+      - ${USER_PORT}:${USER_PORT}
+    depends_on:
+      - user-db
+    volumes:
+      - ../src/user-service/:/app/src/user-service/
+
+  transaction-services:
+    container_name: transaction-services
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./src/transaction-service/Dockerfile
+    environment:
+      POSTGRES_HOST: transaction-db
+    expose:
+      - 8080
+    ports:
+      - ${PRODUCT_PORT}:${PRODUCT_PORT}
+    depends_on:
+      - transaction-db
+    volumes:
+      - ../src/transaction-service/:/app/src/transaction-service/
+
+  review-services:
+    container_name: review-services
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./src/review-service/Dockerfile
+    environment:
+      POSTGRES_HOST: review-db
+      USER_HOST: user-services
+      TRANSACTION_HOST: transaction-services
+    expose:
+      - 8080
+    ports:
+      - ${ORDER_PORT}:${ORDER_PORT}
+    depends_on:
+      - review-db
+    volumes:
+      - ../src/review-service/:/app/src/review-service/
+
+  chat-notification-services:
+    container_name: chat-notification-services
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./src/chat-notification-service/Dockerfile
+    environment:
+      POSTGRES_HOST: chat-db
+      USER_HOST: user-services
+      TRANSACTION_HOST: transaction-services
+    expose:
+      - 8080
+    ports:
+      - ${ORDER_PORT}:${ORDER_PORT}
+    depends_on:
+      - chat-db
+    volumes:
+      - ../src/chat-notification-service/:/app/src/chat-notification-service/
+
+  job-services:
+    container_name: job-services
+    restart: always
+    build:
+      context: ../
+      dockerfile: ./src/job-service/Dockerfile
+    environment:
+      POSTGRES_HOST: job-db
+      USER_HOST: user-services
+      TRANSACTION_HOST: transaction-services
+    expose:
+      - 8080
+    ports:
+      - ${ORDER_PORT}:${ORDER_PORT}
+    depends_on:
+      - job-db
+    volumes:
+      - ../src/job-service/:/app/src/job-service/
+
+  # Database Container
+
+  user-db:
+    image: postgres:latest
+    command: -c 'max_connections=500'
+    container_name: user-db
+    restart: always
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: user_db
+      PGPORT: ${POSTGRES_USER_PORT}
+    expose:
+      - 5430
+    ports:
+      - ${POSTGRES_USER_PORT}:${POSTGRES_USER_PORT}
+    volumes:
+      - ../db/postgres/user_db/migration:/docker-entrypoint-initdb.d
+      - user-db:/var/lib/postgresql/data
+
+  transaction-db:
+    image: postgres:latest
+    command: -c 'max_connections=500'
+    container_name: transaction-db
+    restart: always
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: transaction_db
+      PGPORT: ${POSTGRES_PRODUCT_PORT}
+    expose:
+      - 5431
+    ports:
+      - ${POSTGRES_PRODUCT_PORT}:${POSTGRES_PRODUCT_PORT}
+    volumes:
+      - ../db/postgres/transaction_db/migration:/docker-entrypoint-initdb.d
+      - transaction-db:/var/lib/postgresql/data
+
+  review-db:
+    image: postgres:latest
+    command: -c 'max_connections=500'
+    container_name: review-db
+    restart: always
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: review_db
+      PGPORT: ${POSTGRES_ORDER_PORT}
+    expose:
+      - 5432
+    ports:
+      - ${POSTGRES_ORDER_PORT}:${POSTGRES_ORDER_PORT}
+    volumes:
+      - ../db/postgres/review_db/migration:/docker-entrypoint-initdb.d
+      - review-db:/var/lib/postgresql/data
+
+  chat-db:
+    image: postgres:latest
+    command: -c 'max_connections=500'
+    container_name: chat-db
+    restart: always
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: chat_db
+      PGPORT: ${POSTGRES_ORDER_PORT}
+    expose:
+      - 5432
+    ports:
+      - ${POSTGRES_ORDER_PORT}:${POSTGRES_ORDER_PORT}
+    volumes:
+      - ../db/postgres/chat_db/migration:/docker-entrypoint-initdb.d
+      - chat-db:/var/lib/postgresql/data
+
+  job-db:
+    image: postgres:latest
+    command: -c 'max_connections=500'
+    container_name: job-db
+    restart: always
+    environment:
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: job_db
+      PGPORT: ${POSTGRES_ORDER_PORT}
+    expose:
+      - 5432
+    ports:
+      - ${POSTGRES_ORDER_PORT}:${POSTGRES_ORDER_PORT}
+    volumes:
+      - ../db/postgres/job_db/migration:/docker-entrypoint-initdb.d
+      - job-db:/var/lib/postgresql/data
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui:latest
+    container_name: swagger-ui
+    restart: unless-stopped
+    ports:
+      - ${SWAGGER_PORT}:8080
+    depends_on:
+      - auth-services
+    volumes:
+      - ../docs/api/swagger.json:/spec/docs/swagger.json
+    environment:
+      SWAGGER_JSON: /spec/docs/swagger.json
+
+volumes:
+  auth-db:
+  user-db:
+  transaction-db:
+  review-db:
+  chat-db:
+  job-db:

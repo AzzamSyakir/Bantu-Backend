@@ -1,0 +1,16 @@
+syntax = "proto3";
+package  go_micro_services;
+
+import "commons.proto";
+
+
+option go_package = "pb/";
+
+
+service AuthService{
+  rpc LogoutWithUserId(ByUserId) returns (empty);
+}
+
+message ByUserId {
+  string id=1;
+}
