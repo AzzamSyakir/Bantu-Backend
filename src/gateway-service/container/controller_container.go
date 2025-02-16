@@ -5,18 +5,18 @@ import (
 )
 
 type ControllerContainer struct {
-	Auth   *http.AuthController
-	Expose *http.ExposeController
+	Gateway *http.GatewayController
+	Expose  *http.ExposeController
 }
 
 func NewControllerContainer(
-	auth *http.AuthController,
+	auth *http.GatewayController,
 	expose *http.ExposeController,
 
 ) *ControllerContainer {
 	controllerContainer := &ControllerContainer{
-		Auth:   auth,
-		Expose: expose,
+		Gateway: auth,
+		Expose:  expose,
 	}
 	return controllerContainer
 }

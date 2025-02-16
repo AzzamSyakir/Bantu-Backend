@@ -11,21 +11,21 @@ import (
 	"github.com/guregu/null"
 )
 
-type AuthMiddleware struct {
-	SessionRepository *repository.AuthRepository
+type GatewayMiddleware struct {
+	SessionRepository *repository.GatewayRepository
 	DatabaseConfig    *config.DatabaseConfig
 }
 
-func NewAuthMiddleware(sessionRepository repository.AuthRepository, databaseConfig *config.DatabaseConfig) *AuthMiddleware {
-	return &AuthMiddleware{
+func NewGatewayMiddleware(sessionRepository repository.GatewayRepository, databaseConfig *config.DatabaseConfig) *GatewayMiddleware {
+	return &GatewayMiddleware{
 		SessionRepository: &sessionRepository,
 		DatabaseConfig:    databaseConfig,
 	}
 }
 
-func (authMiddleware *AuthMiddleware) Middleware(next http.Handler) http.Handler {
+func (authMiddleware *GatewayMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
+		token := r.Header.Get("Gatewayorization")
 		token = strings.Replace(token, "Bearer ", "", 1)
 		if token == "" {
 			result := &response.Response[interface{}]{
@@ -36,7 +36,7 @@ func (authMiddleware *AuthMiddleware) Middleware(next http.Handler) http.Handler
 			return
 		}
 
-		begin, err := authMiddleware.DatabaseConfig.AuthDB.Connection.Begin()
+		begin, err := authMiddleware.DatabaseConfig.GatewayDB.Connection.Begin()
 		if err != nil {
 			begin.Rollback()
 			result := &response.Response[interface{}]{

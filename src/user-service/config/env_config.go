@@ -5,10 +5,10 @@ import (
 )
 
 type AppEnv struct {
-	Host         string
-	Port         string
-	AuthHost     string
-	AuthGrpcPort string
+	Host            string
+	Port            string
+	GatewayHost     string
+	GatewayGrpcPort string
 }
 
 type PostgresEnv struct {
@@ -27,10 +27,10 @@ type EnvConfig struct {
 func NewEnvConfig() *EnvConfig {
 	envConfig := &EnvConfig{
 		App: &AppEnv{
-			Host:         os.Getenv("GATEWAY_HOST"),
-			Port:         os.Getenv("USER_PORT"),
-			AuthHost:     os.Getenv("GATEWAY_HOST"),
-			AuthGrpcPort: os.Getenv("GATEWAY_GRPC_PORT"),
+			Host:            os.Getenv("GATEWAY_HOST"),
+			Port:            os.Getenv("USER_PORT"),
+			GatewayHost:     os.Getenv("GATEWAY_HOST"),
+			GatewayGrpcPort: os.Getenv("GATEWAY_GRPC_PORT"),
 		},
 		UserDB: &PostgresEnv{
 			Host:     os.Getenv("POSTGRES_HOST"),

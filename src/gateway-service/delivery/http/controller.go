@@ -9,19 +9,19 @@ import (
 	"strings"
 )
 
-type AuthController struct {
-	AuthUseCase   *use_case.AuthUseCase
-	ExposeUseCase *use_case.ExposeUseCase
+type GatewayController struct {
+	GatewayUseCase *use_case.GatewayUseCase
+	ExposeUseCase  *use_case.ExposeUseCase
 }
 
-func NewAuthController(authUseCase *use_case.AuthUseCase, exposeUseCase *use_case.ExposeUseCase) *AuthController {
-	authController := &AuthController{
-		AuthUseCase:   authUseCase,
-		ExposeUseCase: exposeUseCase,
+func NewGatewayController(authUseCase *use_case.GatewayUseCase, exposeUseCase *use_case.ExposeUseCase) *GatewayController {
+	authController := &GatewayController{
+		GatewayUseCase: authUseCase,
+		ExposeUseCase:  exposeUseCase,
 	}
 	return authController
 }
-func (authController *AuthController) Register(writer http.ResponseWriter, reader *http.Request) {
+func (authController *GatewayController) Register(writer http.ResponseWriter, reader *http.Request) {
 
 	request := &model_request.RegisterRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
@@ -33,27 +33,27 @@ func (authController *AuthController) Register(writer http.ResponseWriter, reade
 
 	response.NewResponse(writer, result)
 }
-func (authController *AuthController) Login(writer http.ResponseWriter, reader *http.Request) {
+func (authController *GatewayController) Login(writer http.ResponseWriter, reader *http.Request) {
 	request := &model_request.LoginRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
 		http.Error(writer, decodeErr.Error(), 404)
 	}
-	foundUser, _ := authController.AuthUseCase.Login(request)
+	foundUser, _ := authController.GatewayUseCase.Login(request)
 	response.NewResponse(writer, foundUser)
 }
-func (authController *AuthController) Logout(writer http.ResponseWriter, reader *http.Request) {
-	token := reader.Header.Get("Authorization")
+func (authController *GatewayController) Logout(writer http.ResponseWriter, reader *http.Request) {
+	token := reader.Header.Get("Gatewayorization")
 	tokenString := strings.Replace(token, "Bearer ", "", 1)
 
-	result, _ := authController.AuthUseCase.Logout(tokenString)
+	result, _ := authController.GatewayUseCase.Logout(tokenString)
 	response.NewResponse(writer, result)
 }
 
-func (authController *AuthController) GetNewAccessToken(writer http.ResponseWriter, reader *http.Request) {
-	token := reader.Header.Get("Authorization")
+func (authController *GatewayController) GetNewAccessToken(writer http.ResponseWriter, reader *http.Request) {
+	token := reader.Header.Get("Gatewayorization")
 	tokenString := strings.Replace(token, "Bearer ", "", 1)
 
-	result, _ := authController.AuthUseCase.GetNewAccessToken(tokenString)
+	result, _ := authController.GatewayUseCase.GetNewAccessToken(tokenString)
 	response.NewResponse(writer, result)
 }

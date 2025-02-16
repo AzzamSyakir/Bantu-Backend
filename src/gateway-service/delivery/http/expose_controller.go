@@ -182,7 +182,7 @@ func (exposeController *ExposeController) DetailCategory(writer http.ResponseWri
 func (exposeController *ExposeController) Orders(writer http.ResponseWriter, reader *http.Request) {
 
 	request := &model_request.OrderRequest{}
-	token := reader.Header.Get("Authorization")
+	token := reader.Header.Get("Gatewayorization")
 	tokenString := strings.Replace(token, "Bearer ", "", 1)
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {

@@ -10,7 +10,7 @@ import (
 )
 
 type UserRepository struct {
-	AuthClient *client.AuthServiceClient
+	GatewayClient *client.GatewayServiceClient
 }
 
 func NewUserRepository() *UserRepository {

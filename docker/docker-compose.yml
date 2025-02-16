@@ -12,13 +12,9 @@ services:
       REVIEW_HOST: review-services
       CHAT_HOST: chat-notification-services
       JOB_HOST: job-services
-    expose:
-      - 8080
     ports:
       - ${GATEWAY_PORT}:${GATEWAY_PORT}
       - ${GATEWAY_GRPC_PORT}:${GATEWAY_GRPC_PORT}
-    depends_on:
-      - auth-db
     volumes:
       - ../src/gateway-service/:/app/src/gateway-service/
 
@@ -31,8 +27,6 @@ services:
     environment:
       POSTGRES_HOST: user-db
       GATEWAY_HOST: gateway-services
-    expose:
-      - 8080
     ports:
       - ${USER_PORT}:${USER_PORT}
     depends_on:
@@ -48,8 +42,6 @@ services:
       dockerfile: ./src/transaction-service/Dockerfile
     environment:
       POSTGRES_HOST: transaction-db
-    expose:
-      - 8080
     ports:
       - ${TRANSACTION_PORT}:${TRANSACTION_PORT}
     depends_on:
@@ -67,8 +59,6 @@ services:
       POSTGRES_HOST: review-db
       USER_HOST: user-services
       TRANSACTION_HOST: transaction-services
-    expose:
-      - 8080
     ports:
       - ${REVIEW_PORT}:${REVIEW_PORT}
     depends_on:
@@ -86,12 +76,10 @@ services:
       POSTGRES_HOST: chat-notification-db
       USER_HOST: user-services
       TRANSACTION_HOST: transaction-services
-    expose:
-      - 8080
     ports:
       - ${CHAT_NOTIFICATION_PORT}:${CHAT_NOTIFICATION_PORT}
     depends_on:
-      - chat-db
+      - chat-notification-db
     volumes:
       - ../src/chat-notification-service/:/app/src/chat-notification-service/
 
@@ -105,8 +93,6 @@ services:
       POSTGRES_HOST: job-db
       USER_HOST: user-services
       TRANSACTION_HOST: transaction-services
-    expose:
-      - 8080
     ports:
       - ${JOB_PORT}:${JOB_PORT}
     depends_on:
@@ -115,7 +101,6 @@ services:
       - ../src/job-service/:/app/src/job-service/
 
   # Database Container
-
   user-db:
     image: postgres:latest
     command: -c 'max_connections=500'
@@ -165,8 +150,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: review_db
       PGPORT: ${POSTGRES_REVIEW_PORT}
-    expose:
-      - 5432
     ports:
       - ${POSTGRES_REVIEW_PORT}:${POSTGRES_REVIEW_PORT}
     volumes:
@@ -176,7 +159,7 @@ services:
   chat-notification-db:
     image: postgres:latest
     command: -c 'max_connections=500'
-    container_name: chat-db
+    container_name: chat-notification-db
     restart: always
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST}
@@ -184,8 +167,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: chat_db
       PGPORT: ${POSTGRES_CHAT_NOTIFICATION_PORT}
-    expose:
-      - 5432
     ports:
       - ${POSTGRES_CHAT_NOTIFICATION_PORT}:${POSTGRES_CHAT_NOTIFICATION_PORT}
     volumes:
@@ -203,8 +184,6 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: job_db
       PGPORT: ${POSTGRES_JOB_PORT}
-    expose:
-      - 5432
     ports:
       - ${POSTGRES_JOB_PORT}:${POSTGRES_JOB_PORT}
     volumes:
@@ -236,7 +215,7 @@ services:
       - ./redis/redis.conf:/usr/local/etc/redis/redis.conf #if need to setting up redis
 volumes:
   redis-data:
-  auth-db:
+  gateway-db:
   user-db:
   transaction-db:
   review-db:

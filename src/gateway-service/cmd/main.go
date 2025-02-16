@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	fmt.Println("Auth Services started.")
+	fmt.Println("Gateway Services started.")
 
 	webContainer := container.NewWebContainer()
 	// grpc server
@@ -17,7 +17,7 @@ func main() {
 		grpcAddress := fmt.Sprintf(
 			"%s:%s",
 			"0.0.0.0",
-			webContainer.Env.App.AuthGrpcPort,
+			webContainer.Env.App.GatewayGrpcPort,
 		)
 		netListen, err := net.Listen("tcp", grpcAddress)
 		if err != nil {
@@ -31,11 +31,11 @@ func main() {
 	address := fmt.Sprintf(
 		"%s:%s",
 		"0.0.0.0",
-		webContainer.Env.App.AuthHttpPort,
+		webContainer.Env.App.GatewayHttpPort,
 	)
 	listenAndServeErr := http.ListenAndServe(address, webContainer.Route.Router)
 	if listenAndServeErr != nil {
 		log.Fatalf("failed to serve HTTP: %v", listenAndServeErr)
 	}
-	fmt.Println("Auth Services finished.")
+	fmt.Println("Gateway Services finished.")
 }

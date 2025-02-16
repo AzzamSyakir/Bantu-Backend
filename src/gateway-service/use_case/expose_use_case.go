@@ -14,18 +14,18 @@ import (
 )
 
 type ExposeUseCase struct {
-	DatabaseConfig *config.DatabaseConfig
-	AuthRepository *repository.AuthRepository
-	Env            *config.EnvConfig
-	UserClient     *client.UserServiceClient
-	ProductClient  *client.ProductServiceClient
-	OrderClient    *client.OrderServiceClient
-	CategoryClient *client.CategoryServiceClient
+	DatabaseConfig    *config.DatabaseConfig
+	GatewayRepository *repository.GatewayRepository
+	Env               *config.EnvConfig
+	UserClient        *client.UserServiceClient
+	ProductClient     *client.ProductServiceClient
+	OrderClient       *client.OrderServiceClient
+	CategoryClient    *client.CategoryServiceClient
 }
 
 func NewExposeUseCase(
 	databaseConfig *config.DatabaseConfig,
-	authRepository *repository.AuthRepository,
+	authRepository *repository.GatewayRepository,
 	env *config.EnvConfig,
 	initUserClient *client.UserServiceClient,
 	initProductClient *client.ProductServiceClient,
@@ -33,13 +33,13 @@ func NewExposeUseCase(
 	initCategoryClient *client.CategoryServiceClient,
 ) *ExposeUseCase {
 	userUseCase := &ExposeUseCase{
-		UserClient:     initUserClient,
-		ProductClient:  initProductClient,
-		OrderClient:    initOrderClient,
-		CategoryClient: initCategoryClient,
-		DatabaseConfig: databaseConfig,
-		AuthRepository: authRepository,
-		Env:            env,
+		UserClient:        initUserClient,
+		ProductClient:     initProductClient,
+		OrderClient:       initOrderClient,
+		CategoryClient:    initCategoryClient,
+		DatabaseConfig:    databaseConfig,
+		GatewayRepository: authRepository,
+		Env:               env,
 	}
 	return userUseCase
 }
@@ -635,19 +635,19 @@ func (exposeUseCase *ExposeUseCase) DetailCategory(id string) (result *model_res
 // order
 
 func (exposeUseCase *ExposeUseCase) Orders(tokenString string, request *model_request.OrderRequest) (result *model_response.Response[*model_response.OrderResponse]) {
-	begin, err := exposeUseCase.DatabaseConfig.AuthDB.Connection.Begin()
+	begin, err := exposeUseCase.DatabaseConfig.GatewayDB.Connection.Begin()
 	if err != nil {
 		result = &model_response.Response[*model_response.OrderResponse]{
 			Data:    nil,
-			Message: "AuthUseCase error, order is failed" + err.Error(),
+			Message: "GatewayUseCase error, order is failed" + err.Error(),
 		}
 		return result
 	}
-	session, err := exposeUseCase.AuthRepository.FindOneByAccToken(begin, tokenString)
+	session, err := exposeUseCase.GatewayRepository.FindOneByAccToken(begin, tokenString)
 	if err != nil {
 		result = &model_response.Response[*model_response.OrderResponse]{
 			Data:    nil,
-			Message: "AuthUseCase error, order is failed" + err.Error(),
+			Message: "GatewayUseCase error, order is failed" + err.Error(),
 		}
 		return result
 	}

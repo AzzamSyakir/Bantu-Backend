@@ -7,7 +7,7 @@ import "commons.proto";
 option go_package = "pb/";
 
 
-service AuthService{
+service GatewayService{
   rpc LogoutWithUserId(ByUserId) returns (empty);
 }
 

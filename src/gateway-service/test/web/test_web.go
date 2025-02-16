@@ -15,7 +15,7 @@ package web
 // 	UserContainer    *user_container.WebContainer
 // 	OrderContainer   *order_container.WebContainer
 // 	ProductContainer *product_container.WebContainer
-// 	AuthContainer    *auth_container.WebContainer
+// 	GatewayContainer    *auth_container.WebContainer
 // }
 
 // func NewTestWeb() *TestWeb {
@@ -29,7 +29,7 @@ package web
 // 	testWeb := &TestWeb{
 // 		Server:           server,
 // 		UserContainer:    userWebContainer,
-// 		AuthContainer:    authWebContainer,
+// 		GatewayContainer:    authWebContainer,
 // 		ProductContainer: productWebContainer,
 // 		OrderContainer:   orderWebContainer,
 // 	}
@@ -41,7 +41,7 @@ package web
 // 	userSeeder := seeder.NewUserSeeder(web.UserContainer.UserDB)
 // 	categorySeeder := seeder.NewCategorySeeder(web.ProductContainer.ProductDB)
 // 	productSeeder := seeder.NewProductSeeder(web.ProductContainer.ProductDB, categorySeeder)
-// 	sessionSeeder := seeder.NewSessionSeeder(web.AuthContainer.AuthDB, userSeeder)
+// 	sessionSeeder := seeder.NewSessionSeeder(web.GatewayContainer.GatewayDB, userSeeder)
 // 	orderSeeder := seeder.NewOrderSeeder(web.OrderContainer.OrderDB, userSeeder)
 // 	orderProductSeeder := seeder.NewOrderProductSeeder(web.OrderContainer.OrderDB, orderSeeder, productSeeder)
 // 	seederConfig := seeder.NewAllSeeder(

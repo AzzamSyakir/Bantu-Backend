@@ -13,7 +13,7 @@ package test
 // 		t.Fatal(chdirErr)
 // 	}
 // 	fmt.Println("TestWeb started.")
-// 	authWeb := web.NewAuthWeb(t)
+// 	authWeb := web.NewGatewayWeb(t)
 // 	authWeb.Start()
 
 // 	userWeb := web.NewUserWeb(t)

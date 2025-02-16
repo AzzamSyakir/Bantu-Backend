@@ -7,43 +7,43 @@ import (
 )
 
 type RootRoute struct {
-	Router    *mux.Router
-	AuthRoute *AuthRoute
+	Router       *mux.Router
+	GatewayRoute *GatewayRoute
 }
 
 func NewRootRoute(
 	router *mux.Router,
-	authRoute *AuthRoute,
+	authRoute *GatewayRoute,
 
 ) *RootRoute {
 	rootRoute := &RootRoute{
-		Router:    router,
-		AuthRoute: authRoute,
+		Router:       router,
+		GatewayRoute: authRoute,
 	}
 	return rootRoute
 }
 
 func (rootRoute *RootRoute) Register() {
-	rootRoute.AuthRoute.Register()
+	rootRoute.GatewayRoute.Register()
 }
 
-type AuthRoute struct {
-	Router         *mux.Router
-	AuthController *http.AuthController
+type GatewayRoute struct {
+	Router            *mux.Router
+	GatewayController *http.GatewayController
 }
 
-func NewAuthRoute(router *mux.Router, AuthController *http.AuthController) *AuthRoute {
-	AuthRoute := &AuthRoute{
-		Router:         router.PathPrefix("/auths").Subrouter(),
-		AuthController: AuthController,
+func NewGatewayRoute(router *mux.Router, GatewayController *http.GatewayController) *GatewayRoute {
+	GatewayRoute := &GatewayRoute{
+		Router:            router.PathPrefix("/auths").Subrouter(),
+		GatewayController: GatewayController,
 	}
-	return AuthRoute
+	return GatewayRoute
 }
 
-func (authRoute *AuthRoute) Register() {
-	authRoute.Router.HandleFunc("/register", authRoute.AuthController.Register).Methods("POST")
+func (authRoute *GatewayRoute) Register() {
+	authRoute.Router.HandleFunc("/register", authRoute.GatewayController.Register).Methods("POST")
 
-	authRoute.Router.HandleFunc("/login", authRoute.AuthController.Login).Methods("POST")
-	authRoute.Router.HandleFunc("/access-token", authRoute.AuthController.GetNewAccessToken).Methods("POST")
-	authRoute.Router.HandleFunc("/logout", authRoute.AuthController.Logout).Methods("POST")
+	authRoute.Router.HandleFunc("/login", authRoute.GatewayController.Login).Methods("POST")
+	authRoute.Router.HandleFunc("/access-token", authRoute.GatewayController.GetNewAccessToken).Methods("POST")
+	authRoute.Router.HandleFunc("/logout", authRoute.GatewayController.Logout).Methods("POST")
 }

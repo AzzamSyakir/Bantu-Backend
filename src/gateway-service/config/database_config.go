@@ -9,38 +9,38 @@ import (
 )
 
 type DatabaseConfig struct {
-	AuthDB *PostgresDatabase
+	GatewayDB *PostgresDatabase
 }
 
 type PostgresDatabase struct {
 	Connection *sql.DB
 }
 
-func NewAuthDBConfig(envConfig *EnvConfig) *DatabaseConfig {
+func NewGatewayDBConfig(envConfig *EnvConfig) *DatabaseConfig {
 	databaseConfig := &DatabaseConfig{
-		AuthDB: NewAuthDB(envConfig),
+		GatewayDB: NewGatewayDB(envConfig),
 	}
 	return databaseConfig
 }
 
-func NewAuthDB(envConfig *EnvConfig) *PostgresDatabase {
+func NewGatewayDB(envConfig *EnvConfig) *PostgresDatabase {
 	var url string
-	if envConfig.AuthDB.Password == "" {
+	if envConfig.GatewayDB.Password == "" {
 		url = fmt.Sprintf(
 			"postgresql://%s@%s:%s/%s",
-			envConfig.AuthDB.Auth,
-			envConfig.AuthDB.Host,
-			envConfig.AuthDB.Port,
-			envConfig.AuthDB.Database,
+			envConfig.GatewayDB.Gateway,
+			envConfig.GatewayDB.Host,
+			envConfig.GatewayDB.Port,
+			envConfig.GatewayDB.Database,
 		)
 	} else {
 		url = fmt.Sprintf(
 			"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
-			envConfig.AuthDB.Auth,
-			envConfig.AuthDB.Password,
-			envConfig.AuthDB.Host,
-			envConfig.AuthDB.Port,
-			envConfig.AuthDB.Database,
+			envConfig.GatewayDB.Gateway,
+			envConfig.GatewayDB.Password,
+			envConfig.GatewayDB.Host,
+			envConfig.GatewayDB.Port,
+			envConfig.GatewayDB.Database,
 		)
 	}
 

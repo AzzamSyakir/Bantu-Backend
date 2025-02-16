@@ -17,19 +17,19 @@ import (
 )
 
 type UserUseCase struct {
-	AuthClient *client.AuthServiceClient
+	GatewayClient *client.GatewayServiceClient
 	pb.UnimplementedUserServiceServer
 	DatabaseConfig *config.DatabaseConfig
 	UserRepository *repository.UserRepository
 }
 
 func NewUserUseCase(
-	authClient *client.AuthServiceClient,
+	authClient *client.GatewayServiceClient,
 	databaseConfig *config.DatabaseConfig,
 	userRepository *repository.UserRepository,
 ) *UserUseCase {
 	return &UserUseCase{
-		AuthClient:                     authClient,
+		GatewayClient:                  authClient,
 		UnimplementedUserServiceServer: pb.UnimplementedUserServiceServer{},
 		DatabaseConfig:                 databaseConfig,
 		UserRepository:                 userRepository,
@@ -255,7 +255,7 @@ func (userUseCase *UserUseCase) DeleteUser(context context.Context, id *pb.ById)
 	userId := &pb.ByUserId{
 		Id: id.Id,
 	}
-	userUseCase.AuthClient.LogoutWithUserId(userId)
+	userUseCase.GatewayClient.LogoutWithUserId(userId)
 	deletedUser, deletedUserErr := userUseCase.UserRepository.DeleteUser(begin, id.Id)
 	if deletedUserErr != nil {
 		err = begin.Rollback()

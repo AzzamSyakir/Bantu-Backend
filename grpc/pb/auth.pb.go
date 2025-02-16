@@ -99,8 +99,8 @@ var file_auth_proto_goTypes = []any{
 	(*Empty)(nil),    // 1: go_micro_services.empty
 }
 var file_auth_proto_depIdxs = []int32{
-	0, // 0: go_micro_services.AuthService.LogoutWithUserId:input_type -> go_micro_services.ByUserId
-	1, // 1: go_micro_services.AuthService.LogoutWithUserId:output_type -> go_micro_services.empty
+	0, // 0: go_micro_services.GatewayService.LogoutWithUserId:input_type -> go_micro_services.ByUserId
+	1, // 1: go_micro_services.GatewayService.LogoutWithUserId:output_type -> go_micro_services.empty
 	1, // [1:2] is the sub-list for method output_type
 	0, // [0:1] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name

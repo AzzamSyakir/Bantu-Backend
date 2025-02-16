@@ -33,11 +33,11 @@ func NewWebContainer() *WebContainer {
 	repositoryContainer := NewRepositoryContainer(userRepository)
 	authUrl := fmt.Sprintf(
 		"%s:%s",
-		envConfig.App.AuthHost,
-		envConfig.App.AuthGrpcPort,
+		envConfig.App.GatewayHost,
+		envConfig.App.GatewayGrpcPort,
 	)
-	initAuthClient := client.InitAuthServiceClient(authUrl)
-	userUseCase := use_case.NewUserUseCase(&initAuthClient, userDBConfig, userRepository)
+	initGatewayClient := client.InitGatewayServiceClient(authUrl)
+	userUseCase := use_case.NewUserUseCase(&initGatewayClient, userDBConfig, userRepository)
 	grpcServer := grpc.NewServer()
 	pb.RegisterUserServiceServer(grpcServer, userUseCase)
 

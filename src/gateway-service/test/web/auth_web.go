@@ -17,38 +17,38 @@ package web
 // 	"github.com/stretchr/testify/assert"
 // )
 
-// type AuthWeb struct {
+// type GatewayWeb struct {
 // 	Test *testing.T
 // 	Path string
 // }
 
-// func NewAuthWeb(test *testing.T) *AuthWeb {
-// 	authWeb := &AuthWeb{
+// func NewGatewayWeb(test *testing.T) *GatewayWeb {
+// 	authWeb := &GatewayWeb{
 // 		Test: test,
 // 		Path: "auths",
 // 	}
 // 	return authWeb
 // }
-// func (authWeb *AuthWeb) Start() {
-// 	authWeb.Test.Run("AuthWeb_Register_Succeed", authWeb.Register)
-// 	authWeb.Test.Run("AuthWeb_Login_Succeed", authWeb.Login)
-// 	authWeb.Test.Run("AuthWeb_Logout_Succeed", authWeb.Logout)
-// 	authWeb.Test.Run("AuthWeb_GetNewAccessToken_Succeed", authWeb.GetNewAccessToken)
+// func (authWeb *GatewayWeb) Start() {
+// 	authWeb.Test.Run("GatewayWeb_Register_Succeed", authWeb.Register)
+// 	authWeb.Test.Run("GatewayWeb_Login_Succeed", authWeb.Login)
+// 	authWeb.Test.Run("GatewayWeb_Logout_Succeed", authWeb.Logout)
+// 	authWeb.Test.Run("GatewayWeb_GetNewAccessToken_Succeed", authWeb.GetNewAccessToken)
 // }
 
-// func (authWeb *AuthWeb) Register(t *testing.T) {
+// func (authWeb *GatewayWeb) Register(t *testing.T) {
 // 	t.Parallel()
 
 // 	testWeb := GetTestWeb()
 // 	defer testWeb.AllSeeder.Down()
 
-// 	mockAuth := testWeb.AllSeeder.User.UserMock.Data[0]
+// 	mockGateway := testWeb.AllSeeder.User.UserMock.Data[0]
 
 // 	bodyRequest := &model_request.RegisterRequest{}
-// 	bodyRequest.Name = null.NewString(mockAuth.Name.String, true)
-// 	bodyRequest.Email = null.NewString(mockAuth.Email.String, true)
-// 	bodyRequest.Password = null.NewString(mockAuth.Password.String, true)
-// 	bodyRequest.Balance = null.NewInt(mockAuth.Balance.Int64, true)
+// 	bodyRequest.Name = null.NewString(mockGateway.Name.String, true)
+// 	bodyRequest.Email = null.NewString(mockGateway.Email.String, true)
+// 	bodyRequest.Password = null.NewString(mockGateway.Password.String, true)
+// 	bodyRequest.Balance = null.NewInt(mockGateway.Balance.Int64, true)
 
 // 	bodyRequestJsonByte, marshalErr := json.Marshal(bodyRequest)
 // 	if marshalErr != nil {
@@ -75,16 +75,16 @@ package web
 
 // 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 // 	assert.Equal(t, "application/json", response.Header.Get("Content-Type"))
-// 	assert.Equal(t, mockAuth.Name.String, bodyResponse.Data.Name.String)
-// 	assert.Equal(t, mockAuth.Email.String, bodyResponse.Data.Email.String)
-// 	assert.Equal(t, mockAuth.Balance.Int64, bodyResponse.Data.Balance.Int64)
-// 	assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(bodyResponse.Data.Password.String), []byte(mockAuth.Password.String)))
+// 	assert.Equal(t, mockGateway.Name.String, bodyResponse.Data.Name.String)
+// 	assert.Equal(t, mockGateway.Email.String, bodyResponse.Data.Email.String)
+// 	assert.Equal(t, mockGateway.Balance.Int64, bodyResponse.Data.Balance.Int64)
+// 	assert.NoError(t, bcrypt.CompareHashAndPassword([]byte(bodyResponse.Data.Password.String), []byte(mockGateway.Password.String)))
 
 // 	newUserMock := bodyResponse.Data
 // 	testWeb.AllSeeder.User.UserMock.Data = append(testWeb.AllSeeder.User.UserMock.Data, newUserMock)
 // }
 
-// func (authWeb *AuthWeb) Login(t *testing.T) {
+// func (authWeb *GatewayWeb) Login(t *testing.T) {
 // 	t.Parallel()
 
 // 	testWeb := GetTestWeb()
@@ -123,7 +123,7 @@ package web
 // 	assert.Equal(t, selectedUserMock.Id, bodyResponse.Data.UserId)
 // }
 
-// func (authWeb *AuthWeb) Logout(t *testing.T) {
+// func (authWeb *GatewayWeb) Logout(t *testing.T) {
 // 	t.Parallel()
 
 // 	testWeb := GetTestWeb()
@@ -137,7 +137,7 @@ package web
 // 		t.Fatal(newRequestErr)
 // 	}
 
-// 	request.Header.Set("Authorization", "Bearer "+selectedSessionMock.AccessToken.String)
+// 	request.Header.Set("Gatewayorization", "Bearer "+selectedSessionMock.AccessToken.String)
 
 // 	response, doErr := http.DefaultClient.Do(request)
 // 	if doErr != nil {
@@ -147,7 +147,7 @@ package web
 // 	assert.Equal(t, http.StatusOK, response.StatusCode)
 // 	assert.Equal(t, "application/json", response.Header.Get("Content-Type"))
 // }
-// func (authWeb *AuthWeb) GetNewAccessToken(t *testing.T) {
+// func (authWeb *GatewayWeb) GetNewAccessToken(t *testing.T) {
 // 	t.Parallel()
 
 // 	testWeb := GetTestWeb()
@@ -161,7 +161,7 @@ package web
 // 		t.Fatal(newRequest)
 // 	}
 
-// 	request.Header.Set("Authorization", "Bearer "+selectedSessionMock.RefreshToken.String)
+// 	request.Header.Set("Gatewayorization", "Bearer "+selectedSessionMock.RefreshToken.String)
 
 // 	response, doErr := http.DefaultClient.Do(request)
 // 	if doErr != nil {

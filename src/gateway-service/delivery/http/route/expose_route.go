@@ -41,12 +41,12 @@ func (exposeRoute *ExposeRoute) Register() {
 }
 
 type CategoryRoute struct {
-	Middleware         *middleware.AuthMiddleware
+	Middleware         *middleware.GatewayMiddleware
 	Router             *mux.Router
 	CategoryController *http.ExposeController
 }
 
-func NewCategoryRoute(router *mux.Router, CategoryController *http.ExposeController, middleware *middleware.AuthMiddleware) *CategoryRoute {
+func NewCategoryRoute(router *mux.Router, CategoryController *http.ExposeController, middleware *middleware.GatewayMiddleware) *CategoryRoute {
 	CategoryRoute := &CategoryRoute{
 		Router:             router.PathPrefix("/categories").Subrouter(),
 		CategoryController: CategoryController,
@@ -67,12 +67,12 @@ func (categoryRoute *CategoryRoute) Register() {
 // order route
 
 type OrderRoute struct {
-	Middleware      *middleware.AuthMiddleware
+	Middleware      *middleware.GatewayMiddleware
 	Router          *mux.Router
 	OrderController *http.ExposeController
 }
 
-func NewOrderRoute(router *mux.Router, orderController *http.ExposeController, middleware *middleware.AuthMiddleware) *OrderRoute {
+func NewOrderRoute(router *mux.Router, orderController *http.ExposeController, middleware *middleware.GatewayMiddleware) *OrderRoute {
 	orderRoute := &OrderRoute{
 		Router:          router.PathPrefix("/orders").Subrouter(),
 		OrderController: orderController,
@@ -90,12 +90,12 @@ func (orderRoute *OrderRoute) Register() {
 // product route
 
 type ProductRoute struct {
-	Middleware        *middleware.AuthMiddleware
+	Middleware        *middleware.GatewayMiddleware
 	Router            *mux.Router
 	ProductController *http.ExposeController
 }
 
-func NewProductRoute(router *mux.Router, productController *http.ExposeController, middleware *middleware.AuthMiddleware) *ProductRoute {
+func NewProductRoute(router *mux.Router, productController *http.ExposeController, middleware *middleware.GatewayMiddleware) *ProductRoute {
 	productRoute := &ProductRoute{
 		Router:            router.PathPrefix("/products").Subrouter(),
 		ProductController: productController,
@@ -116,12 +116,12 @@ func (productRoute *ProductRoute) Register() {
 // user route
 
 type UserRoute struct {
-	Middleware     *middleware.AuthMiddleware
+	Middleware     *middleware.GatewayMiddleware
 	Router         *mux.Router
 	UserController *http.ExposeController
 }
 
-func NewUserRoute(router *mux.Router, userController *http.ExposeController, middleware *middleware.AuthMiddleware) *UserRoute {
+func NewUserRoute(router *mux.Router, userController *http.ExposeController, middleware *middleware.GatewayMiddleware) *UserRoute {
 	userRoute := &UserRoute{
 		Router:         router.PathPrefix("/users").Subrouter(),
 		UserController: userController,

@@ -10,24 +10,24 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-type AuthServiceClient struct {
-	Client pb.AuthServiceClient
+type GatewayServiceClient struct {
+	Client pb.GatewayServiceClient
 }
 
-func InitAuthServiceClient(url string) AuthServiceClient {
+func InitGatewayServiceClient(url string) GatewayServiceClient {
 	cc, err := grpc.NewClient(url, grpc.WithTransportCredentials(insecure.NewCredentials()))
 
 	if err != nil {
 		fmt.Println("Could not connect:", err)
 	}
 
-	c := AuthServiceClient{
-		Client: pb.NewAuthServiceClient(cc),
+	c := GatewayServiceClient{
+		Client: pb.NewGatewayServiceClient(cc),
 	}
 	fmt.Println("init auth grpc service", url)
 	return c
 }
-func (c *AuthServiceClient) LogoutWithUserId(req *pb.ByUserId) (*pb.Empty, error) {
+func (c *GatewayServiceClient) LogoutWithUserId(req *pb.ByUserId) (*pb.Empty, error) {
 	resp, err := c.Client.LogoutWithUserId(context.Background(), req)
 	if err != nil {
 		log.Fatal("failed to LogoutWithUserId: %w", err)

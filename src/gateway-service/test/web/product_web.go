@@ -90,7 +90,7 @@ package web
 // 		t.Fatal(newRequestErr)
 // 	}
 // 	selectedSessionMock := testWeb.AllSeeder.Session.SessionMock.Data[0]
-// 	request.Header.Set("Authorization", "Bearer "+selectedSessionMock.AccessToken.String)
+// 	request.Header.Set("Gatewayorization", "Bearer "+selectedSessionMock.AccessToken.String)
 // 	response, doErr := http.DefaultClient.Do(request)
 // 	if doErr != nil {
 // 		t.Fatal(doErr)

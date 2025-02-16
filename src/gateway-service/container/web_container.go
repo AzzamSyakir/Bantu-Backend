@@ -18,7 +18,7 @@ import (
 
 type WebContainer struct {
 	Env        *config.EnvConfig
-	AuthDB     *config.DatabaseConfig
+	GatewayDB  *config.DatabaseConfig
 	Repository *RepositoryContainer
 	UseCase    *UseCaseContainer
 	Controller *ControllerContainer
@@ -33,9 +33,9 @@ func NewWebContainer() *WebContainer {
 	}
 
 	envConfig := config.NewEnvConfig()
-	authDBConfig := config.NewAuthDBConfig(envConfig)
+	authDBConfig := config.NewGatewayDBConfig(envConfig)
 
-	authRepository := repository.NewAuthRepository()
+	authRepository := repository.NewGatewayRepository()
 	repositoryContainer := NewRepositoryContainer(authRepository)
 
 	userUrl := fmt.Sprintf(
@@ -59,22 +59,22 @@ func NewWebContainer() *WebContainer {
 
 	initOrderClient := client.InitOrderServiceClient(orderUrl)
 	initCategoryClient := client.InitCategoryServiceClient(productUrl)
-	authUseCase := use_case.NewAuthUseCase(authDBConfig, authRepository, envConfig, &initUserClient)
+	authUseCase := use_case.NewGatewayUseCase(authDBConfig, authRepository, envConfig, &initUserClient)
 	grpcServer := grpc.NewServer()
-	pb.RegisterAuthServiceServer(grpcServer, authUseCase)
+	pb.RegisterGatewayServiceServer(grpcServer, authUseCase)
 
 	exposeUseCase := use_case.NewExposeUseCase(authDBConfig, authRepository, envConfig, &initUserClient, &initProductClient, &initOrderClient, &initCategoryClient)
 
 	useCaseContainer := NewUseCaseContainer(authUseCase, exposeUseCase)
 
-	authController := httpdelivery.NewAuthController(authUseCase, exposeUseCase)
+	authController := httpdelivery.NewGatewayController(authUseCase, exposeUseCase)
 	exposeController := httpdelivery.NewExposeController(exposeUseCase)
 
 	controllerContainer := NewControllerContainer(authController, exposeController)
 
 	router := mux.NewRouter()
-	authMiddleware := middleware.NewAuthMiddleware(*authRepository, authDBConfig)
-	authRoute := route.NewAuthRoute(router, authController)
+	authMiddleware := middleware.NewGatewayMiddleware(*authRepository, authDBConfig)
+	authRoute := route.NewGatewayRoute(router, authController)
 	// expose route
 	userRoute := route.NewUserRoute(router, exposeController, authMiddleware)
 	productRoute := route.NewProductRoute(router, exposeController, authMiddleware)
@@ -98,7 +98,7 @@ func NewWebContainer() *WebContainer {
 
 	webContainer := &WebContainer{
 		Env:        envConfig,
-		AuthDB:     authDBConfig,
+		GatewayDB:  authDBConfig,
 		Repository: repositoryContainer,
 		UseCase:    useCaseContainer,
 		Controller: controllerContainer,

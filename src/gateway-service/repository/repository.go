@@ -6,12 +6,12 @@ import (
 	"fmt"
 )
 
-type AuthRepository struct {
+type GatewayRepository struct {
 }
 
-func NewAuthRepository() *AuthRepository {
-	AuthRepository := &AuthRepository{}
-	return AuthRepository
+func NewGatewayRepository() *GatewayRepository {
+	GatewayRepository := &GatewayRepository{}
+	return GatewayRepository
 }
 
 func DeserializeSessionRows(rows *sql.Rows) []*entity.Session {
@@ -35,7 +35,7 @@ func DeserializeSessionRows(rows *sql.Rows) []*entity.Session {
 	}
 	return foundSessions
 }
-func (sessionRepository *AuthRepository) CreateSession(begin *sql.Tx, toCreateSession *entity.Session) (result *entity.Session, err error) {
+func (sessionRepository *GatewayRepository) CreateSession(begin *sql.Tx, toCreateSession *entity.Session) (result *entity.Session, err error) {
 	_, queryErr := begin.Query(
 		`INSERT INTO sessions (id, user_id, access_token, refresh_token, access_token_expired_at, refresh_token_expired_at, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`,
 		toCreateSession.Id,
@@ -58,7 +58,7 @@ func (sessionRepository *AuthRepository) CreateSession(begin *sql.Tx, toCreateSe
 	return result, err
 }
 
-func (sessionRepository *AuthRepository) FindOneByAccToken(begin *sql.Tx, accessToken string) (result *entity.Session, err error) {
+func (sessionRepository *GatewayRepository) FindOneByAccToken(begin *sql.Tx, accessToken string) (result *entity.Session, err error) {
 	rows, queryErr := begin.Query(
 		`SELECT id, user_id, access_token, refresh_token, access_token_expired_at, refresh_token_expired_at, created_at, updated_at FROM sessions WHERE access_token=$1 LIMIT 1;`,
 		accessToken,
@@ -81,7 +81,7 @@ func (sessionRepository *AuthRepository) FindOneByAccToken(begin *sql.Tx, access
 	return result, err
 }
 
-func (sessionRepository *AuthRepository) GetOneByUserId(begin *sql.Tx, userId string) (result *entity.Session, err error) {
+func (sessionRepository *GatewayRepository) GetOneByUserId(begin *sql.Tx, userId string) (result *entity.Session, err error) {
 	rows, queryErr := begin.Query(
 		`SELECT id, user_id, access_token, refresh_token, access_token_expired_at, refresh_token_expired_at, created_at, updated_at FROM sessions WHERE user_id=$1 LIMIT 1;`,
 		userId,
@@ -104,7 +104,7 @@ func (sessionRepository *AuthRepository) GetOneByUserId(begin *sql.Tx, userId st
 	return result, err
 }
 
-func (sessionRepository *AuthRepository) FindOneByRefToken(begin *sql.Tx, refreshToken string) (result *entity.Session, err error) {
+func (sessionRepository *GatewayRepository) FindOneByRefToken(begin *sql.Tx, refreshToken string) (result *entity.Session, err error) {
 	rows, queryErr := begin.Query(
 		`SELECT id, user_id, access_token, refresh_token, access_token_expired_at, refresh_token_expired_at, created_at, updated_at FROM sessions WHERE refresh_token=$1 LIMIT 1;`,
 		refreshToken,
@@ -127,7 +127,7 @@ func (sessionRepository *AuthRepository) FindOneByRefToken(begin *sql.Tx, refres
 	return result, err
 }
 
-func (sessionRepository *AuthRepository) PatchOneById(begin *sql.Tx, id string, toPatchSession *entity.Session) (result *entity.Session, err error) {
+func (sessionRepository *GatewayRepository) PatchOneById(begin *sql.Tx, id string, toPatchSession *entity.Session) (result *entity.Session, err error) {
 	_, queryErr := begin.Query(
 		`UPDATE sessions SET id=$1, user_id=$2, access_token=$3, refresh_token=$4, access_token_expired_at=$5, refresh_token_expired_at=$6, created_at=$7, updated_at=$8 WHERE id=$9;`,
 		toPatchSession.Id,
@@ -150,7 +150,7 @@ func (sessionRepository *AuthRepository) PatchOneById(begin *sql.Tx, id string, 
 	err = nil
 	return result, err
 }
-func (sessionRepository *AuthRepository) DeleteOneById(begin *sql.Tx, id string) (result *entity.Session, err error) {
+func (sessionRepository *GatewayRepository) DeleteOneById(begin *sql.Tx, id string) (result *entity.Session, err error) {
 	rows, queryErr := begin.Query(
 		`DELETE FROM sessions WHERE id=$1  RETURNING id, user_id, access_token, refresh_token, access_token_expired_at, refresh_token_expired_at, created_at, updated_at;`,
 		id,
@@ -171,7 +171,7 @@ func (sessionRepository *AuthRepository) DeleteOneById(begin *sql.Tx, id string)
 	err = nil
 	return result, err
 }
-func (sessionRepository *AuthRepository) DeleteOneByUserId(begin *sql.Tx, id string) (result *entity.Session, err error) {
+func (sessionRepository *GatewayRepository) DeleteOneByUserId(begin *sql.Tx, id string) (result *entity.Session, err error) {
 	fmt.Println("auth service in delete session by user id")
 	rows, queryErr := begin.Query(
 		`DELETE FROM sessions WHERE user_id=$1  RETURNING id, user_id, access_token, refresh_token, access_token_expired_at, refresh_token_expired_at, created_at, updated_at;`,
