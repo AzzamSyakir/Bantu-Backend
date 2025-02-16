@@ -15,11 +15,11 @@ RUN go install github.com/air-verse/air@latest
 # copy source from host to docker container
 COPY ./src/gateway-service/ ./src/gateway-service/
 COPY grpc/ grpc/
-COPY auth.air.toml .
+COPY gateway.air.toml .
 COPY .env .
 COPY go.mod .
 COPY go.sum .
-COPY Makefile .
+COPY makefile .
 COPY tmp .
 
 # install dependencies project
@@ -28,4 +28,4 @@ RUN go mod download
 
 # run the Go app.
 WORKDIR $WORKDIR
-CMD ["air", "-c", "auth.air.toml"]
+CMD ["air", "-c", "gateway.air.toml"]

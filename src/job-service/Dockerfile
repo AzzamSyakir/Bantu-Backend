@@ -14,11 +14,11 @@ WORKDIR $WORKDIR
 # copy source from host to docker container
 COPY ./src/job-service/ ./src/job-service/
 COPY grpc/ grpc/
-COPY user.air.toml .
+COPY job.air.toml .
 COPY .env .
 COPY go.mod .
 COPY go.sum .
-COPY Makefile .
+COPY makefile .
 COPY tmp .
 
 # install dependencies project
@@ -27,4 +27,4 @@ RUN go mod download
 
 # run the Go app.
 WORKDIR $WORKDIR
-CMD ["air", "-c", "user.air.toml"]
+CMD ["air", "-c", "job.air.toml"]

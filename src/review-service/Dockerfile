@@ -14,11 +14,11 @@ WORKDIR $WORKDIR
 
 COPY ./src/review-service/ ./src/review-service/
 COPY grpc/ grpc/
-COPY order.air.toml .
+COPY review.air.toml .
 COPY .env .
 COPY go.mod .
 COPY go.sum .
-COPY Makefile .
+COPY makefile .
 COPY tmp .
 
 # install dependencies project
@@ -27,4 +27,4 @@ RUN go mod download
 
 # run the Go app.
 WORKDIR $WORKDIR
-CMD ["air", "-c", "order.air.toml"]
+CMD ["air", "-c", "review.air.toml"]

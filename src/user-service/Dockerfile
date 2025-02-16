@@ -18,7 +18,7 @@ COPY user.air.toml .
 COPY .env .
 COPY go.mod .
 COPY go.sum .
-COPY Makefile .
+COPY makefile .
 COPY tmp .
 
 # install dependencies project

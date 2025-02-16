@@ -15,11 +15,11 @@ RUN go install github.com/air-verse/air@latest
 
 COPY ./src/transaction-service/ ./src/transaction-service/
 COPY grpc/ grpc/
-COPY product.air.toml .
+COPY transaction.air.toml .
 COPY .env .
 COPY go.mod .
 COPY go.sum .
-COPY Makefile .
+COPY makefile .
 COPY tmp .
 
 # install dependencies project
@@ -28,4 +28,4 @@ RUN go mod download
 
 # run the Go app.
 WORKDIR $WORKDIR
-CMD ["air", "-c", "product.air.toml"]
+CMD ["air", "-c", "transaction.air.toml"]
