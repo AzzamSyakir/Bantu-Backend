@@ -1,11 +1,11 @@
 services:
   #Services Container
-  auth-services:
-    container_name: auth-services
+  gateway-services:
+    container_name: gateway-services
     restart: always
     build:
       context: ../
-      dockerfile: ./src/auth-service/Dockerfile
+      dockerfile: ./src/gateway-service/Dockerfile
     environment:
       USER_HOST: user-services
       TRANSACTION_HOST: transaction-services
@@ -15,12 +15,12 @@ services:
     expose:
       - 8080
     ports:
-      - ${AUTH_PORT}:${AUTH_PORT}
-      - ${AUTH_GRPC_PORT}:${AUTH_GRPC_PORT}
+      - ${GATEWAY_PORT}:${GATEWAY_PORT}
+      - ${GATEWAY_GRPC_PORT}:${GATEWAY_GRPC_PORT}
     depends_on:
       - auth-db
     volumes:
-      - ../src/auth-service/:/app/src/auth-service/
+      - ../src/gateway-service/:/app/src/gateway-service/
 
   user-services:
     container_name: user-services
@@ -30,7 +30,7 @@ services:
       dockerfile: ./src/user-service/Dockerfile
     environment:
       POSTGRES_HOST: user-db
-      AUTH_HOST: auth-services
+      GATEWAY_HOST: gateway-services
     expose:
       - 8080
     ports:
@@ -51,7 +51,7 @@ services:
     expose:
       - 8080
     ports:
-      - ${PRODUCT_PORT}:${PRODUCT_PORT}
+      - ${TRANSACTION_PORT}:${TRANSACTION_PORT}
     depends_on:
       - transaction-db
     volumes:
@@ -70,7 +70,7 @@ services:
     expose:
       - 8080
     ports:
-      - ${ORDER_PORT}:${ORDER_PORT}
+      - ${REVIEW_PORT}:${REVIEW_PORT}
     depends_on:
       - review-db
     volumes:
@@ -83,13 +83,13 @@ services:
       context: ../
       dockerfile: ./src/chat-notification-service/Dockerfile
     environment:
-      POSTGRES_HOST: chat-db
+      POSTGRES_HOST: chat-notification-db
       USER_HOST: user-services
       TRANSACTION_HOST: transaction-services
     expose:
       - 8080
     ports:
-      - ${ORDER_PORT}:${ORDER_PORT}
+      - ${CHAT_NOTIFICATION_PORT}:${CHAT_NOTIFICATION_PORT}
     depends_on:
       - chat-db
     volumes:
@@ -108,7 +108,7 @@ services:
     expose:
       - 8080
     ports:
-      - ${ORDER_PORT}:${ORDER_PORT}
+      - ${JOB_PORT}:${JOB_PORT}
     depends_on:
       - job-db
     volumes:
@@ -145,11 +145,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: transaction_db
-      PGPORT: ${POSTGRES_PRODUCT_PORT}
+      PGPORT: ${POSTGRES_TRANSACTION_PORT}
     expose:
       - 5431
     ports:
-      - ${POSTGRES_PRODUCT_PORT}:${POSTGRES_PRODUCT_PORT}
+      - ${POSTGRES_TRANSACTION_PORT}:${POSTGRES_TRANSACTION_PORT}
     volumes:
       - ../db/postgres/transaction_db/migration:/docker-entrypoint-initdb.d
       - transaction-db:/var/lib/postgresql/data
@@ -164,16 +164,16 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: review_db
-      PGPORT: ${POSTGRES_ORDER_PORT}
+      PGPORT: ${POSTGRES_REVIEW_PORT}
     expose:
       - 5432
     ports:
-      - ${POSTGRES_ORDER_PORT}:${POSTGRES_ORDER_PORT}
+      - ${POSTGRES_REVIEW_PORT}:${POSTGRES_REVIEW_PORT}
     volumes:
       - ../db/postgres/review_db/migration:/docker-entrypoint-initdb.d
       - review-db:/var/lib/postgresql/data
 
-  chat-db:
+  chat-notification-db:
     image: postgres:latest
     command: -c 'max_connections=500'
     container_name: chat-db
@@ -183,14 +183,14 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: chat_db
-      PGPORT: ${POSTGRES_ORDER_PORT}
+      PGPORT: ${POSTGRES_CHAT_NOTIFICATION_PORT}
     expose:
       - 5432
     ports:
-      - ${POSTGRES_ORDER_PORT}:${POSTGRES_ORDER_PORT}
+      - ${POSTGRES_CHAT_NOTIFICATION_PORT}:${POSTGRES_CHAT_NOTIFICATION_PORT}
     volumes:
       - ../db/postgres/chat_db/migration:/docker-entrypoint-initdb.d
-      - chat-db:/var/lib/postgresql/data
+      - chat-notification-db:/var/lib/postgresql/data
 
   job-db:
     image: postgres:latest
@@ -202,11 +202,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: job_db
-      PGPORT: ${POSTGRES_ORDER_PORT}
+      PGPORT: ${POSTGRES_JOB_PORT}
     expose:
       - 5432
     ports:
-      - ${POSTGRES_ORDER_PORT}:${POSTGRES_ORDER_PORT}
+      - ${POSTGRES_JOB_PORT}:${POSTGRES_JOB_PORT}
     volumes:
       - ../db/postgres/job_db/migration:/docker-entrypoint-initdb.d
       - job-db:/var/lib/postgresql/data
@@ -218,16 +218,27 @@ services:
     ports:
       - ${SWAGGER_PORT}:8080
     depends_on:
-      - auth-services
+      - gateway-services
     volumes:
       - ../docs/api/swagger.json:/spec/docs/swagger.json
     environment:
       SWAGGER_JSON: /spec/docs/swagger.json
 
+  redis:
+    image: redis:latest
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    command: redis-server /usr/local/etc/redis/redis.conf
+    volumes:
+      - redis-data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf #if need to setting up redis
 volumes:
+  redis-data:
   auth-db:
   user-db:
   transaction-db:
   review-db:
-  chat-db:
+  chat-notification-db:
   job-db:
