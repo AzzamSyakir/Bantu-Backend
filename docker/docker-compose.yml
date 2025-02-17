@@ -1,5 +1,20 @@
 services:
-  #Services Container
+  rabbitmq:
+    image: rabbitmq:management-alpine
+    container_name: rabbitmq
+    restart: unless-stopped
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq/
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 5s
+      retries: 20
   app-services:
     container_name: app-services
     restart: always
@@ -59,3 +74,4 @@ services:
 volumes:
   redis-data:
   app-db:
+  rabbitmq-data:
