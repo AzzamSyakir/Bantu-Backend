@@ -15,6 +15,7 @@ type PostgresEnv struct {
 	User     string
 	Password string
 	Database string
+	DBNeed   string
 }
 type RabbitMqEnv struct {
 	Host     string
@@ -25,8 +26,9 @@ type RabbitMqEnv struct {
 }
 
 type EnvConfig struct {
-	App *AppEnv
-	Db  *PostgresEnv
+	App      *AppEnv
+	Db       *PostgresEnv
+	RabbitMq *RabbitMqEnv
 }
 
 func NewEnvConfig() *EnvConfig {
@@ -36,11 +38,19 @@ func NewEnvConfig() *EnvConfig {
 			AppPort: os.Getenv("GATEWAY_APP_PORT"),
 		},
 		Db: &PostgresEnv{
-			Host:     os.Getenv("DB_HOST"),
-			Port:     os.Getenv("DB_PORT"),
-			User:     os.Getenv("DB_USER"),
-			Password: os.Getenv("DB_PASSWORD"),
-			Database: os.Getenv("DB_NAME"),
+			Host:     os.Getenv("POSTGRES_HOST"),
+			Port:     os.Getenv("POSTGRES_PORT"),
+			User:     os.Getenv("POSTGRES_USER"),
+			Password: os.Getenv("POSTGRES_PASSWORD"),
+			Database: os.Getenv("POSTGRES_DB"),
+			DBNeed:   os.Getenv("POSTGRES_NEED"),
+		},
+		RabbitMq: &RabbitMqEnv{
+			Host:     os.Getenv("RABBITMQ_HOST"),
+			Port:     os.Getenv("RABBITMQ_PORT"),
+			User:     os.Getenv("RABBITMQ_USER"),
+			Password: os.Getenv("RABBITMQ_PASS"),
+			Queue:    os.Getenv("RABBITMQ_QUEUE_NAMES"),
 		},
 	}
 	return envConfig
