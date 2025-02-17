@@ -11,7 +11,7 @@ ENV WORKDIR /app
 WORKDIR $WORKDIR
 
 # copy source from host to docker container
-COPY ./src/ ./src/
+COPY ./src ./src
 COPY air.toml .
 COPY .env .
 COPY go.mod .
