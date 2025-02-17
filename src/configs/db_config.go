@@ -3,6 +3,8 @@ package configs
 import (
 	"database/sql"
 	"fmt"
+
+	_ "github.com/lib/pq"
 )
 
 type DatabaseConfig struct {
