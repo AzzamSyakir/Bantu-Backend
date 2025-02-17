@@ -15,22 +15,28 @@ services:
       test: rabbitmq-diagnostics check_port_connectivity
       interval: 5s
       retries: 20
-  app-services:
-    container_name: app-services
-    restart: always
+  app:
     build:
       context: ../
-      dockerfile: ./src/Dockerfile
-    environment:
-      USER_HOST: user-services
-      TRANSACTION_HOST: transaction-services
-      REVIEW_HOST: review-services
-      CHAT_HOST: chat-notification-services
-      JOB_HOST: job-services
+      dockerfile: ./docker/Dockerfile
+    container_name: app-container
+    restart: unless-stopped
     ports:
-      - ${GATEWAY_PORT}:8080
-    volumes:
-      - ../src/:/src/
+      - "8080:8080"
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD}
+      RABBITMQ_MANAGEMENT_PORT: 15672
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    entrypoint: [
+        "sh",
+        "-c",
+        "until wget -q --spider --user ${RABBITMQ_USER} --password ${RABBITMQ_PASSWORD} http://rabbitmq:${RABBITMQ_MANAGEMENT_PORT}/api/aliveness-test/%2F; do echo 'Waiting for RabbitMQ...'; sleep 2; done; echo 'RabbitMQ is ready!';
+        air",
+      ]
   app-db:
     image: postgres:latest
     command: -c 'max_connections=500'
@@ -55,7 +61,7 @@ services:
     ports:
       - ${SWAGGER_PORT}:8090
     depends_on:
-      - app-services
+      - app
     volumes:
       - ../docs/api/swagger.json:/spec/docs/swagger.json
     environment:
