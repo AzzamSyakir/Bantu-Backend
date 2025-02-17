@@ -54,6 +54,7 @@ func NewContainer() *Container {
 	middleware := middlewares.NewMiddleware()
 	routeConfig := routes.NewRoute(
 		router,
+		middleware,
 		authController,
 		chatController,
 		jobController,
