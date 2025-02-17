@@ -1,13 +1,18 @@
 package controllers
 
-import "bantu-backend/src/internal/services"
+import (
+	"bantu-backend/src/internal/helper/response"
+	"bantu-backend/src/internal/services"
+)
 
 type JobController struct {
-	JobService *services.JobService
+	JobService      *services.JobService
+	ResponseChannel chan response.Response[any]
 }
 
 func NewJobController(jobService *services.JobService) *JobController {
 	return &JobController{
-		JobService: jobService,
+		JobService:      jobService,
+		ResponseChannel: make(chan response.Response[any], 1),
 	}
 }

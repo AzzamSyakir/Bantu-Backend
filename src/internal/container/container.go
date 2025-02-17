@@ -17,6 +17,7 @@ type Container struct {
 	Env        *configs.EnvConfig
 	Db         *configs.DatabaseConfig
 	Controller *ControllerContainer
+	RabbitMq   *configs.RabbitMqConfig
 	Route      *routes.Route
 	Middleware *middlewares.Middleware
 }
@@ -29,6 +30,7 @@ func NewContainer() *Container {
 	}
 	envConfig := configs.NewEnvConfig()
 	dbConfig := configs.NewDBConfig(envConfig)
+	rabbitmqConfig := configs.NewRabbitMqConfig(envConfig)
 	// setup repo
 	userRepository := repository.NewUserRepository()
 	chatRepository := repository.NewChatRepository()
@@ -48,7 +50,7 @@ func NewContainer() *Container {
 	jobController := controllers.NewJobController(jobService)
 	proposalController := controllers.NewProposalController(proposalService)
 	transactionController := controllers.NewTransactionController(transactionService)
-	// setup controllerContainer
+	// setup controllerContainer, etc
 	controllerContainer := NewControllerContainer(authController, userController, chatController, jobController, proposalController, transactionController)
 	router := mux.NewRouter()
 	middleware := middlewares.NewMiddleware()
@@ -63,10 +65,11 @@ func NewContainer() *Container {
 	)
 	routeConfig.Register()
 	container := &Container{
+		Env:        envConfig,
 		Db:         dbConfig,
 		Controller: controllerContainer,
+		RabbitMq:   rabbitmqConfig,
 		Route:      routeConfig,
-		Env:        envConfig,
 		Middleware: middleware,
 	}
 	return container

@@ -49,7 +49,7 @@ func NewEnvConfig() *EnvConfig {
 			Host:     os.Getenv("RABBITMQ_HOST"),
 			Port:     os.Getenv("RABBITMQ_PORT"),
 			User:     os.Getenv("RABBITMQ_USER"),
-			Password: os.Getenv("RABBITMQ_PASS"),
+			Password: os.Getenv("RABBITMQ_PASSWORD"),
 			Queue:    os.Getenv("RABBITMQ_QUEUE_NAMES"),
 		},
 	}
