@@ -20,11 +20,6 @@ type ControllerConsumer struct {
 	UserController        *controllers.UserController
 }
 
-type RabbitMQPayload struct {
-	Message string `json:"message"`
-	Data    any    `json:"data"`
-}
-
 func (controller ControllerConsumer) ConsumeAuthQueue(rabbitMQConfig *configs.RabbitMqConfig) {
 	expectedQueueName := "ProductSellerResponseQueue"
 	var queueName string
