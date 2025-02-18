@@ -4,6 +4,7 @@ import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/controllers"
 	"bantu-backend/src/internal/middlewares"
+	"bantu-backend/src/internal/rabbitmq/consumer"
 	"bantu-backend/src/internal/repository"
 	"bantu-backend/src/internal/routes"
 	"bantu-backend/src/internal/services"
@@ -17,6 +18,7 @@ type Container struct {
 	Env        *configs.EnvConfig
 	Db         *configs.DatabaseConfig
 	Controller *ControllerContainer
+	RabbitMq   *configs.RabbitMqConfig
 	Route      *routes.Route
 	Middleware *middlewares.Middleware
 }
@@ -29,6 +31,7 @@ func NewContainer() *Container {
 	}
 	envConfig := configs.NewEnvConfig()
 	dbConfig := configs.NewDBConfig(envConfig)
+	rabbitmqConfig := configs.NewRabbitMqConfig(envConfig)
 	// setup repo
 	userRepository := repository.NewUserRepository()
 	chatRepository := repository.NewChatRepository()
@@ -48,12 +51,16 @@ func NewContainer() *Container {
 	jobController := controllers.NewJobController(jobService)
 	proposalController := controllers.NewProposalController(proposalService)
 	transactionController := controllers.NewTransactionController(transactionService)
-	// setup controllerContainer
+	// setup controllerContainer, etc
+	controllerConsumer := consumer.NewControllerConsumer(authController, chatController, jobController, proposalController, transactionController, userController)
+	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
+	consumerInit.ConsumerEntrypointStart()
 	controllerContainer := NewControllerContainer(authController, userController, chatController, jobController, proposalController, transactionController)
 	router := mux.NewRouter()
 	middleware := middlewares.NewMiddleware()
 	routeConfig := routes.NewRoute(
 		router,
+		middleware,
 		authController,
 		chatController,
 		jobController,
@@ -62,10 +69,11 @@ func NewContainer() *Container {
 	)
 	routeConfig.Register()
 	container := &Container{
+		Env:        envConfig,
 		Db:         dbConfig,
 		Controller: controllerContainer,
+		RabbitMq:   rabbitmqConfig,
 		Route:      routeConfig,
-		Env:        envConfig,
 		Middleware: middleware,
 	}
 	return container

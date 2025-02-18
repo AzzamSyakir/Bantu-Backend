@@ -2,11 +2,13 @@ package routes
 
 import (
 	"bantu-backend/src/internal/controllers"
+	"bantu-backend/src/internal/middlewares"
 
 	"github.com/gorilla/mux"
 )
 
 type Route struct {
+	Middleware            *middlewares.Middleware
 	Router                *mux.Router
 	AuthController        *controllers.AuthController
 	ChatController        *controllers.ChatController
@@ -16,9 +18,18 @@ type Route struct {
 	UserController        *controllers.UserController
 }
 
-func NewRoute(router *mux.Router, authController *controllers.AuthController, chatController *controllers.ChatController, jobController *controllers.JobController, proposalController *controllers.ProposalController, transactionController *controllers.TransactionController) *Route {
+func NewRoute(
+	router *mux.Router,
+	middleware *middlewares.Middleware,
+	authController *controllers.AuthController,
+	chatController *controllers.ChatController,
+	jobController *controllers.JobController,
+	proposalController *controllers.ProposalController,
+	transactionController *controllers.TransactionController,
+) *Route {
 	subRouter := router.PathPrefix("/api").Subrouter()
 	return &Route{
+		Middleware:            middleware,
 		Router:                subRouter,
 		AuthController:        authController,
 		ChatController:        chatController,
