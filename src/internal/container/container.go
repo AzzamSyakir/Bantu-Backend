@@ -4,6 +4,7 @@ import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/controllers"
 	"bantu-backend/src/internal/middlewares"
+	"bantu-backend/src/internal/rabbitmq/consumer"
 	"bantu-backend/src/internal/repository"
 	"bantu-backend/src/internal/routes"
 	"bantu-backend/src/internal/services"
@@ -51,6 +52,9 @@ func NewContainer() *Container {
 	proposalController := controllers.NewProposalController(proposalService)
 	transactionController := controllers.NewTransactionController(transactionService)
 	// setup controllerContainer, etc
+	controllerConsumer := consumer.NewControllerConsumer(authController, chatController, jobController, proposalController, transactionController, userController)
+	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
+	consumerInit.ConsumerEntrypointStart()
 	controllerContainer := NewControllerContainer(authController, userController, chatController, jobController, proposalController, transactionController)
 	router := mux.NewRouter()
 	middleware := middlewares.NewMiddleware()
