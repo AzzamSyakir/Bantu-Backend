@@ -16,13 +16,13 @@ type RabbitMQPayload struct {
 
 func NewConsumerEntrypointInit(
 	controllerConsumer *ControllerConsumer,
-	serviceConsumer *ServiceConsumer,
+	// serviceConsumer *ServiceConsumer,
 	rabbitMQConfig *configs.RabbitMqConfig,
 ) *ConsumerEntrypoint {
 	return &ConsumerEntrypoint{
 		ControllerConsumer: controllerConsumer,
-		ServicesConsumer:   serviceConsumer,
-		RabbitMq:           rabbitMQConfig,
+		// ServicesConsumer:   serviceConsumer,
+		RabbitMq: rabbitMQConfig,
 	}
 }
 func ControllerConsumerStart(consumerEntrypoint *ConsumerEntrypoint) {
@@ -34,7 +34,6 @@ func ControllerConsumerStart(consumerEntrypoint *ConsumerEntrypoint) {
 	go consumerEntrypoint.ControllerConsumer.ConsumeUserQueue(consumerEntrypoint.RabbitMq)
 }
 func ServiceConsumerStart(consumerEntrypoint *ConsumerEntrypoint) {
-
 }
 func (consumerEntrypoint *ConsumerEntrypoint) ConsumerEntrypointStart() {
 	ControllerConsumerStart(consumerEntrypoint)

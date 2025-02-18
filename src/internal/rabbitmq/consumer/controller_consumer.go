@@ -20,8 +20,26 @@ type ControllerConsumer struct {
 	UserController        *controllers.UserController
 }
 
+func NewControllerConsumer(
+	authController *controllers.AuthController,
+	chatController *controllers.ChatController,
+	jobController *controllers.JobController,
+	proposalController *controllers.ProposalController,
+	transactionController *controllers.TransactionController,
+	userController *controllers.UserController,
+) *ControllerConsumer {
+	return &ControllerConsumer{
+		AuthController:        authController,
+		ChatController:        chatController,
+		JobController:         jobController,
+		ProposalController:    proposalController,
+		TransactionController: transactionController,
+		UserController:        userController,
+	}
+}
+
 func (controller ControllerConsumer) ConsumeAuthQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := "ProductSellerResponseQueue"
+	expectedQueueName := "AuthQueue"
 	var queueName string
 	for _, name := range rabbitMQConfig.Queue {
 		if expectedQueueName == name.Name {
@@ -31,7 +49,7 @@ func (controller ControllerConsumer) ConsumeAuthQueue(rabbitMQConfig *configs.Ra
 	}
 	msgs, err := rabbitMQConfig.Channel.Consume(
 		queueName,
-		"ConsumerListener",
+		"AuthConsumer",
 		true,
 		false,
 		false,
@@ -102,7 +120,7 @@ func (controller ControllerConsumer) ConsumeAuthQueue(rabbitMQConfig *configs.Ra
 	}
 }
 func (controller ControllerConsumer) ConsumeChatQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := "ProductSellerResponseQueue"
+	expectedQueueName := "ChatQueue"
 	var queueName string
 	for _, name := range rabbitMQConfig.Queue {
 		if expectedQueueName == name.Name {
@@ -112,7 +130,7 @@ func (controller ControllerConsumer) ConsumeChatQueue(rabbitMQConfig *configs.Ra
 	}
 	msgs, err := rabbitMQConfig.Channel.Consume(
 		queueName,
-		"ConsumerListener",
+		"ChatConsumer",
 		true,
 		false,
 		false,
@@ -183,7 +201,7 @@ func (controller ControllerConsumer) ConsumeChatQueue(rabbitMQConfig *configs.Ra
 	}
 }
 func (controller ControllerConsumer) ConsumeJobQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := "ProductSellerResponseQueue"
+	expectedQueueName := "JobQueue"
 	var queueName string
 	for _, name := range rabbitMQConfig.Queue {
 		if expectedQueueName == name.Name {
@@ -193,7 +211,7 @@ func (controller ControllerConsumer) ConsumeJobQueue(rabbitMQConfig *configs.Rab
 	}
 	msgs, err := rabbitMQConfig.Channel.Consume(
 		queueName,
-		"ConsumerListener",
+		"JobConsumer",
 		true,
 		false,
 		false,
@@ -264,7 +282,7 @@ func (controller ControllerConsumer) ConsumeJobQueue(rabbitMQConfig *configs.Rab
 	}
 }
 func (controller ControllerConsumer) ConsumeProposalQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := "ProductSellerResponseQueue"
+	expectedQueueName := "ProposalQueue"
 	var queueName string
 	for _, name := range rabbitMQConfig.Queue {
 		if expectedQueueName == name.Name {
@@ -274,7 +292,7 @@ func (controller ControllerConsumer) ConsumeProposalQueue(rabbitMQConfig *config
 	}
 	msgs, err := rabbitMQConfig.Channel.Consume(
 		queueName,
-		"ConsumerListener",
+		"ProposalConsumer",
 		true,
 		false,
 		false,
@@ -345,7 +363,7 @@ func (controller ControllerConsumer) ConsumeProposalQueue(rabbitMQConfig *config
 	}
 }
 func (controller ControllerConsumer) ConsumeTransactionQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := "ProductSellerResponseQueue"
+	expectedQueueName := "TransactionQueue"
 	var queueName string
 	for _, name := range rabbitMQConfig.Queue {
 		if expectedQueueName == name.Name {
@@ -355,7 +373,7 @@ func (controller ControllerConsumer) ConsumeTransactionQueue(rabbitMQConfig *con
 	}
 	msgs, err := rabbitMQConfig.Channel.Consume(
 		queueName,
-		"ConsumerListener",
+		"TransactionConsumer",
 		true,
 		false,
 		false,
@@ -426,7 +444,7 @@ func (controller ControllerConsumer) ConsumeTransactionQueue(rabbitMQConfig *con
 	}
 }
 func (controller ControllerConsumer) ConsumeUserQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := "ProductSellerResponseQueue"
+	expectedQueueName := "UserQueue"
 	var queueName string
 	for _, name := range rabbitMQConfig.Queue {
 		if expectedQueueName == name.Name {
@@ -436,7 +454,7 @@ func (controller ControllerConsumer) ConsumeUserQueue(rabbitMQConfig *configs.Ra
 	}
 	msgs, err := rabbitMQConfig.Channel.Consume(
 		queueName,
-		"ConsumerListener",
+		"UserConsumer",
 		true,
 		false,
 		false,
