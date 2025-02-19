@@ -39,7 +39,7 @@ func NewContainer() *Container {
 	jobRepository := repository.NewJobRepository(dbConfig)
 	transactionRepository := repository.NewTransactionRepository()
 	// setup services
-	servicesProducer := producer.CreateNewServicesProducer()
+	servicesProducer := producer.CreateNewServicesProducer(envConfig.RabbitMq)
 	authService := services.NewAuthService(userRepository, servicesProducer, envConfig, dbConfig, rabbitmqConfig)
 	userService := services.NewUserService(userRepository, servicesProducer)
 	chatService := services.NewChatService(chatRepository, servicesProducer)
@@ -55,7 +55,7 @@ func NewContainer() *Container {
 	transactionController := controllers.NewTransactionController(transactionService)
 	// setup controllerContainer
 	controllerContainer := NewControllerContainer(authController, userController, chatController, jobController, proposalController, transactionController)
-	controllerConsumer := consumer.NewControllerConsumer(authController, chatController, jobController, proposalController, transactionController, userController)
+	controllerConsumer := consumer.NewControllerConsumer(envConfig.RabbitMq, authController, chatController, jobController, proposalController, transactionController, userController)
 	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
 	consumerInit.ConsumerEntrypointStart()
 	router := mux.NewRouter()

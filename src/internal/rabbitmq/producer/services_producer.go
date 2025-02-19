@@ -1,30 +1,32 @@
 package producer
 
 import (
+	"bantu-backend/src/configs"
 	"encoding/json"
 	"fmt"
 
 	"github.com/streadway/amqp"
 )
 
-type ServicesProducer struct{}
-
-func CreateNewServicesProducer() *ServicesProducer {
-	return &ServicesProducer{}
+type ServicesProducer struct {
+	Env *configs.RabbitMqEnv
 }
 
-func (*ServicesProducer) CreateMessageAuth(channelRabbitMQ *amqp.Channel, seller string) error {
-	queueName := "AuthQueue"
+func CreateNewServicesProducer(env *configs.RabbitMqEnv) *ServicesProducer {
+	return &ServicesProducer{
+		Env: env,
+	}
+}
+func (servicesProducer *ServicesProducer) CreateMessageError(channelRabbitMQ *amqp.Channel, errorMessage interface{}) error {
+	queueName := servicesProducer.Env.Queues[6]
 	payload := map[string]interface{}{
-		"message": "Auth Process",
-		"seller":  seller,
-		"channel": channelRabbitMQ,
+		"data": errorMessage,
 	}
 	messageBody, err := json.Marshal(payload)
 	if err != nil {
 		return fmt.Errorf("failed to marshal message body: %w", err)
 	}
-	message := amqp.Publishing{
+	msg := amqp.Publishing{
 		ContentType: "text/plain",
 		Body:        []byte(messageBody),
 	}
@@ -33,15 +35,41 @@ func (*ServicesProducer) CreateMessageAuth(channelRabbitMQ *amqp.Channel, seller
 		queueName, // queue name
 		false,     // mandatory
 		false,     // immediate
-		message,   // message to publish
+		msg,       // message to publish
 	); err != nil {
 		return fmt.Errorf("failed to publish message to queue: %w", err)
 	}
 	return nil
 }
 
-func (*ServicesProducer) CreateMessageJob(channelRabbitMQ *amqp.Channel, messageType string, data interface{}) error {
-	queueName := "JobQueue"
+func (servicesProducer *ServicesProducer) CreateMessageAuth(channelRabbitMQ *amqp.Channel, data any) error {
+	queueName := servicesProducer.Env.Queues[0]
+	payload := map[string]any{
+		"data":    data,
+		"channel": channelRabbitMQ,
+	}
+	messageBody, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message body: %w", err)
+	}
+	msg := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte(messageBody),
+	}
+	if err := channelRabbitMQ.Publish(
+		"",        // exchange
+		queueName, // queue name
+		false,     // mandatory
+		false,     // immediate
+		msg,       // message to publish
+	); err != nil {
+		return fmt.Errorf("failed to publish message to queue: %w", err)
+	}
+	return nil
+}
+
+func (servicesProducer *ServicesProducer) CreateMessageJob(channelRabbitMQ *amqp.Channel, messageType string, data interface{}) error {
+	queueName := servicesProducer.Env.Queues[2]
 	payload := map[string]interface{}{
 		"message": messageType,
 		"data":    data,

@@ -17,7 +17,6 @@ DROP TABLE IF EXISTS admins;
 
 DROP TABLE IF EXISTS users;
 
-
 -- Provinces Table
 CREATE TABLE
   provinces (
@@ -39,7 +38,7 @@ CREATE TABLE
 -- Users Table
 CREATE TABLE
   users (
-    id uuid NOT NULL PRIMARY KEY ,
+    id uuid NOT NULL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -136,9 +135,9 @@ CREATE TABLE
   );
 
 COPY provinces (id, province_name)
-FROM '/docker-entrypoint-initdb.d/data/provinces.csv'
-DELIMITER ',';
+FROM
+  '/docker-entrypoint-initdb.d/data/provinces.csv' DELIMITER ',';
 
 COPY regencies (id, province_id, regency_name)
-FROM '/docker-entrypoint-initdb.d/data/regencies.csv'
-DELIMITER ',';
+FROM
+  '/docker-entrypoint-initdb.d/data/regencies.csv' DELIMITER ',';
