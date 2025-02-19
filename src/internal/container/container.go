@@ -5,6 +5,7 @@ import (
 	"bantu-backend/src/internal/controllers"
 	"bantu-backend/src/internal/middlewares"
 	"bantu-backend/src/internal/rabbitmq/consumer"
+	"bantu-backend/src/internal/rabbitmq/producer"
 	"bantu-backend/src/internal/repository"
 	"bantu-backend/src/internal/routes"
 	"bantu-backend/src/internal/services"
@@ -38,12 +39,13 @@ func NewContainer() *Container {
 	jobRepository := repository.NewJobRepository()
 	transactionRepository := repository.NewTransactionRepository()
 	// setup services
-	authService := services.NewAuthService(userRepository)
-	userService := services.NewUserService(userRepository)
-	chatService := services.NewChatService(chatRepository)
-	jobService := services.NewJobService(jobRepository)
-	proposalService := services.NewProposalService(jobRepository)
-	transactionService := services.NewTransactionService(transactionRepository)
+	servicesProducer := producer.CreateNewServicesProducer()
+	authService := services.NewAuthService(userRepository, servicesProducer)
+	userService := services.NewUserService(userRepository, servicesProducer)
+	chatService := services.NewChatService(chatRepository, servicesProducer)
+	jobService := services.NewJobService(jobRepository, servicesProducer)
+	proposalService := services.NewProposalService(jobRepository, servicesProducer)
+	transactionService := services.NewTransactionService(transactionRepository, servicesProducer)
 	// setup controller
 	authController := controllers.NewAuthController(authService)
 	userController := controllers.NewUserController(userService)
@@ -51,11 +53,11 @@ func NewContainer() *Container {
 	jobController := controllers.NewJobController(jobService)
 	proposalController := controllers.NewProposalController(proposalService)
 	transactionController := controllers.NewTransactionController(transactionService)
-	// setup controllerContainer, etc
+	// setup controllerContainer
+	controllerContainer := NewControllerContainer(authController, userController, chatController, jobController, proposalController, transactionController)
 	controllerConsumer := consumer.NewControllerConsumer(authController, chatController, jobController, proposalController, transactionController, userController)
 	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
 	consumerInit.ConsumerEntrypointStart()
-	controllerContainer := NewControllerContainer(authController, userController, chatController, jobController, proposalController, transactionController)
 	router := mux.NewRouter()
 	middleware := middlewares.NewMiddleware()
 	routeConfig := routes.NewRoute(
