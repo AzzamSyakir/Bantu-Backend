@@ -36,14 +36,14 @@ func NewContainer() *Container {
 	// setup repo
 	userRepository := repository.NewUserRepository()
 	chatRepository := repository.NewChatRepository()
-	jobRepository := repository.NewJobRepository()
+	jobRepository := repository.NewJobRepository(dbConfig)
 	transactionRepository := repository.NewTransactionRepository()
 	// setup services
 	servicesProducer := producer.CreateNewServicesProducer()
-	authService := services.NewAuthService(userRepository, servicesProducer, envConfig, dbConfig)
+	authService := services.NewAuthService(userRepository, servicesProducer, envConfig, dbConfig, rabbitmqConfig)
 	userService := services.NewUserService(userRepository, servicesProducer)
 	chatService := services.NewChatService(chatRepository, servicesProducer)
-	jobService := services.NewJobService(jobRepository, servicesProducer)
+	jobService := services.NewJobService(jobRepository, servicesProducer, dbConfig, rabbitmqConfig)
 	proposalService := services.NewProposalService(jobRepository, servicesProducer)
 	transactionService := services.NewTransactionService(transactionRepository, servicesProducer)
 	// setup controller

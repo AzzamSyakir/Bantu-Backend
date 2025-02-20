@@ -15,9 +15,7 @@ import (
 
 type AuthService struct {
 	DatabaseConfig *configs.DatabaseConfig
-	EnvConfig      *configs.EnvConfig
-	UserRepository *repository.UserRepository
-	Producer       *producer.ServicesProducer
+	Rabbitmq       *configs.RabbitMqConfig
 }
 
 func NewAuthService(userRepository *repository.UserRepository, producer *producer.ServicesProducer, envConfig *configs.EnvConfig, dbConfig *configs.DatabaseConfig) *AuthService {
@@ -26,6 +24,7 @@ func NewAuthService(userRepository *repository.UserRepository, producer *produce
 		EnvConfig:      envConfig,
 		Producer:       producer,
 		UserRepository: userRepository,
+		Rabbitmq:       rabbitmq,
 	}
 	return AuthService
 }
