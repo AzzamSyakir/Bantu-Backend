@@ -12,3 +12,20 @@ type ServiceConsumer struct {
 	TransactionService *services.TransactionService
 	UserService        *services.UserService
 }
+
+func NewServiceConsumer(
+	authService *services.AuthService,
+	chatService *services.ChatService,
+	jobService *services.JobService,
+	proposalService *services.ProposalService,
+	transactionService *services.TransactionService,
+	userService *services.UserService,
+) *ServiceConsumer {
+	return &ServiceConsumer{
+		AuthService:        authService,
+		JobService:         jobService,
+		ProposalService:    proposalService,
+		TransactionService: transactionService,
+		UserService:        userService,
+	}
+}

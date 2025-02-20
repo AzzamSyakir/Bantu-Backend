@@ -39,3 +39,30 @@ func (*ServicesProducer) CreateMessageAuth(channelRabbitMQ *amqp.Channel, seller
 	}
 	return nil
 }
+
+func (*ServicesProducer) CreateMessageJob(channelRabbitMQ *amqp.Channel, messageType string, data interface{}) error {
+	queueName := "JobQueue"
+	payload := map[string]interface{}{
+		"message": messageType,
+		"job":     data,
+		"channel": channelRabbitMQ,
+	}
+	messageBody, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message body: %w", err)
+	}
+	message := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte(messageBody),
+	}
+	if err := channelRabbitMQ.Publish(
+		"",
+		queueName,
+		false,
+		false,
+		message,
+	); err != nil {
+		return fmt.Errorf("failed to publish message to queue: %w", err)
+	}
+	return nil
+}
