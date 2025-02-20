@@ -12,6 +12,7 @@ type ConsumerEntrypoint struct {
 type RabbitMQPayload struct {
 	Message string `json:"message"`
 	Data    any    `json:"data"`
+	Code    int    `json:"code"`
 }
 
 func NewConsumerEntrypointInit(
@@ -26,6 +27,7 @@ func NewConsumerEntrypointInit(
 	}
 }
 func ControllerConsumerStart(consumerEntrypoint *ConsumerEntrypoint) {
+	go consumerEntrypoint.ControllerConsumer.ConsumeErrorQueue(consumerEntrypoint.RabbitMq)
 	go consumerEntrypoint.ControllerConsumer.ConsumeAuthQueue(consumerEntrypoint.RabbitMq)
 	go consumerEntrypoint.ControllerConsumer.ConsumeChatQueue(consumerEntrypoint.RabbitMq)
 	go consumerEntrypoint.ControllerConsumer.ConsumeJobQueue(consumerEntrypoint.RabbitMq)
