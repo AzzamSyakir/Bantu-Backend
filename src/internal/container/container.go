@@ -40,7 +40,7 @@ func NewContainer() *Container {
 	transactionRepository := repository.NewTransactionRepository()
 	// setup services
 	servicesProducer := producer.CreateNewServicesProducer()
-	authService := services.NewAuthService(userRepository, servicesProducer)
+	authService := services.NewAuthService(userRepository, servicesProducer, envConfig, dbConfig)
 	userService := services.NewUserService(userRepository, servicesProducer)
 	chatService := services.NewChatService(chatRepository, servicesProducer)
 	jobService := services.NewJobService(jobRepository, servicesProducer)

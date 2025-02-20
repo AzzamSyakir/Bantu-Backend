@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"bantu-backend/src/internal/helper/response"
+	"bantu-backend/src/internal/models/response"
 	"bantu-backend/src/internal/services"
 )
 

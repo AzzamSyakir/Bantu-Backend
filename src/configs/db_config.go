@@ -26,7 +26,7 @@ func NewDatabaseConnection(envConfig *EnvConfig) *PostgresDatabase {
 	var url string
 	if envConfig.Db.Password == "" {
 		url = fmt.Sprintf(
-			"postgresql://%s@%s:%s/%s",
+			"postgresql://%s@%s:%s/%s?sslmode=disable",
 			envConfig.Db.User,
 			envConfig.Db.Host,
 			envConfig.Db.Port,

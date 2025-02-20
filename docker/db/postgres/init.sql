@@ -16,12 +16,12 @@ DROP TABLE IF EXISTS users;
 -- Users Table
 CREATE TABLE
   users (
-    id SERIAL PRIMARY KEY,
+    id uuid NOT NULL PRIMARY KEY ,
     name VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
     balance DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
-    role VARCHAR(20) CHECK (role IN ('client', 'freelancer', 'company')) NOT NULL DEFAULT 'client',
+    role VARCHAR(20) CHECK (role IN ('client', 'freelancer', 'company')) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );
@@ -29,7 +29,7 @@ CREATE TABLE
 -- Admins Table
 CREATE TABLE
   admins (
-    id SERIAL PRIMARY KEY,
+    id UUID PRIMARY KEY NOT NULL,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,

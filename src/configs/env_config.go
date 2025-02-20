@@ -38,12 +38,12 @@ func NewEnvConfig() *EnvConfig {
 			AppPort: os.Getenv("GATEWAY_APP_PORT"),
 		},
 		Db: &PostgresEnv{
-			Host:     os.Getenv("POSTGRES_HOST"),
-			Port:     os.Getenv("POSTGRES_PORT"),
-			User:     os.Getenv("POSTGRES_USER"),
-			Password: os.Getenv("POSTGRES_PASSWORD"),
-			Database: os.Getenv("POSTGRES_DB"),
-			DBNeed:   os.Getenv("POSTGRES_NEED"),
+			Host:     os.Getenv("DB_HOST"),
+			Port:     os.Getenv("DB_PORT"),
+			User:     os.Getenv("DB_USER"),
+			Password: os.Getenv("DB_PASSWORD"),
+			Database: os.Getenv("DB_NAME"),
+			DBNeed:   os.Getenv("DB_NEED"),
 		},
 		RabbitMq: &RabbitMqEnv{
 			Host:     os.Getenv("RABBITMQ_HOST"),

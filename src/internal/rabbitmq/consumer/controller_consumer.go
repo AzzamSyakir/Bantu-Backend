@@ -4,7 +4,7 @@ import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/controllers"
 	"bantu-backend/src/internal/entity"
-	"bantu-backend/src/internal/helper/response"
+	"bantu-backend/src/internal/models/response"
 	"encoding/json"
 	"fmt"
 	"log"
