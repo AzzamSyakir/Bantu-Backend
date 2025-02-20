@@ -4,7 +4,7 @@ import (
 	"bantu-backend/src/cache"
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/controllers"
-	"bantu-backend/src/internal/middlewares"
+	"bantu-backend/src/internal/middleware"
 	"bantu-backend/src/internal/models/response"
 	"bantu-backend/src/internal/rabbitmq/consumer"
 	"bantu-backend/src/internal/rabbitmq/producer"
@@ -24,7 +24,7 @@ type Container struct {
 	RabbitMq   *configs.RabbitMqConfig
 	Redis      *configs.RedisConfig
 	Route      *routes.Route
-	Middleware *middlewares.Middleware
+	Middleware *middleware.Middleware
 }
 
 func NewContainer() *Container {
@@ -35,8 +35,11 @@ func NewContainer() *Container {
 	}
 	envConfig := configs.NewEnvConfig()
 	dbConfig := configs.NewDBConfig(envConfig)
+	servicesProducer := producer.CreateNewServicesProducer(envConfig.RabbitMq)
 	rabbitmqConfig := configs.NewRabbitMqConfig(envConfig)
 	redisConfig := configs.NewRedisConfig(envConfig)
+	middleware := middleware.NewMiddleware(rabbitmqConfig, servicesProducer, envConfig)
+
 	// setup repo
 	userRepository := repository.NewUserRepository()
 	chatRepository := repository.NewChatRepository()
@@ -47,7 +50,6 @@ func NewContainer() *Container {
 	jobCache := cache.NewJobCache(redisConfig)
 
 	// setup services
-	servicesProducer := producer.CreateNewServicesProducer(envConfig.RabbitMq)
 	authService := services.NewAuthService(userRepository, servicesProducer, envConfig, dbConfig, rabbitmqConfig)
 	userService := services.NewUserService(userRepository, servicesProducer)
 	chatService := services.NewChatService(chatRepository, servicesProducer)
@@ -68,7 +70,6 @@ func NewContainer() *Container {
 	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
 	consumerInit.ConsumerEntrypointStart()
 	router := mux.NewRouter()
-	middleware := middlewares.NewMiddleware()
 	routeConfig := routes.NewRoute(
 		router,
 		middleware,

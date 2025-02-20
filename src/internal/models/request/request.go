@@ -11,6 +11,21 @@ type RegisterRequest struct {
 	Role     string `json:"role"`
 }
 
+type AdminRegisterRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Username string `json:"username"`
+}
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+type AdminLoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type JobRequest struct {
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
@@ -27,8 +42,4 @@ type ProposalRequest struct {
 	ProposalText  *string   `json:"proposal_text,omitempty"`
 	ProposedPrice *float64  `json:"proposed_price,omitempty"`
 	Status        string    `json:"status"`
-}
-type LoginRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
 }
