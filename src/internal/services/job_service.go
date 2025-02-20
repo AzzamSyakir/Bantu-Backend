@@ -56,7 +56,7 @@ func (jobService *JobService) GetJobsService(writer http.ResponseWriter, reader 
 func (jobService *JobService) CreateJobService(request *request.JobRequest) error {
 
 	job := &entity.JobEntity{
-		ID:          uuid.New(),
+		ID:          uuid.NewString(),
 		Title:       request.Title,
 		Description: request.Description,
 		Category:    request.Category,
@@ -80,7 +80,7 @@ func (jobService *JobService) CreateJobService(request *request.JobRequest) erro
 func (jobService *JobService) GetJobByIDService(reader *http.Request) error {
 
 	vars := mux.Vars(reader)
-	id, _ := vars["id"]
+	id := vars["id"]
 	job, err := jobService.JobRepository.GetJobByIDRepository(id)
 	if err != nil {
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, "job not found", http.StatusBadRequest)
@@ -91,7 +91,7 @@ func (jobService *JobService) GetJobByIDService(reader *http.Request) error {
 func (jobService *JobService) UpdateJobService(reader *http.Request, request *request.JobRequest) error {
 
 	vars := mux.Vars(reader)
-	id, _ := vars["id"]
+	id := vars["id"]
 	job := &entity.JobEntity{
 		Title:       request.Title,
 		Description: request.Description,

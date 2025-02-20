@@ -39,7 +39,7 @@ func (proposalService *ProposalService) GetProposalsService(reader *http.Request
 
 func (proposalService *ProposalService) CreateProposalService(request *request.ProposalRequest) error {
 	proposal := &entity.ProposalEntity{
-		ID:            uuid.New(),
+		ID:            uuid.NewString(),
 		JobID:         request.JobID,
 		FreelancerID:  request.FreelancerID,
 		ProposalText:  request.ProposalText,
@@ -55,7 +55,7 @@ func (proposalService *ProposalService) CreateProposalService(request *request.P
 
 func (proposalService *ProposalService) UpdateProposalService(reader *http.Request, request *request.ProposalRequest) error {
 	vars := mux.Vars(reader)
-	id, _ := vars["proposalId"]
+	id := vars["proposalId"]
 	proposal := &entity.ProposalEntity{
 		JobID:         request.JobID,
 		FreelancerID:  request.FreelancerID,

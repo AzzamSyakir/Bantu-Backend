@@ -34,11 +34,12 @@ type RedisEnv struct {
 }
 
 type EnvConfig struct {
-	App       *AppEnv
-	Db        *PostgresEnv
-	RabbitMq  *RabbitMqEnv
-	Redis     *RedisEnv
-	SecretKey string
+	App             *AppEnv
+	Db              *PostgresEnv
+	RabbitMq        *RabbitMqEnv
+	Redis           *RedisEnv
+	SecretKey       string
+	XenditSecretKey string
 }
 
 func NewEnvConfig() *EnvConfig {
@@ -75,7 +76,8 @@ func NewEnvConfig() *EnvConfig {
 			Password: os.Getenv("REDIS_PASSWORD"),
 			DB:       redisDB,
 		},
-		SecretKey: os.Getenv("SECRET_KEY"),
+		SecretKey:       os.Getenv("SECRET_KEY"),
+		XenditSecretKey: os.Getenv("XENDIT_KEY"),
 	}
 	return envConfig
 }

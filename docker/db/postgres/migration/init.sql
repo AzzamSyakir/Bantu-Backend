@@ -28,7 +28,7 @@ CREATE TABLE users (
   name VARCHAR(255) NOT NULL,
   email VARCHAR(255) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
-  balance DECIMAL(10, 2) NOT NULL DEFAULT 0.00,
+  balance  BIGINT NOT NULL DEFAULT 0,
   role VARCHAR(20) CHECK (role IN ('client', 'freelancer', 'company')) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -74,10 +74,13 @@ CREATE TABLE proposals (
 
 CREATE TABLE transactions (
   id uuid PRIMARY KEY,
-  user_id uuid NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-  job_id uuid REFERENCES jobs (id) ON DELETE CASCADE,
-  transaction_type VARCHAR(20) CHECK (transaction_type IN ('top_up', 'pay_job', 'withdrawal')) NOT NULL,
-  amount DECIMAL(10, 2) NOT NULL,
+  job_id uuid,
+  proposal_id uuid NOT NULL,
+  sender_id uuid NOT NULL,
+  receiver_id uuid NOT NULL,
+  amount   BIGINT NOT NULL DEFAULT 0,
+  transaction_type VARCHAR(20) CHECK (transaction_type IN ('top_up', 'pay_freelancer', 'withdrawal')) NOT NULL,
+  payment_method VARCHAR(20) CHECK (payment_method IN ('virtual_account', 'e_money', 'debit', 'credit', 'pay_later', 'qr', 'payment_link', 'internal_wallet')),
   status VARCHAR(20) CHECK (status IN ('pending', 'completed', 'failed')) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -86,7 +89,7 @@ CREATE TABLE transactions (
 CREATE TABLE escrow (
   id uuid PRIMARY KEY,
   transaction_id uuid NOT NULL REFERENCES transactions (id) ON DELETE CASCADE,
-  amount DECIMAL(10, 2) NOT NULL,
+  amount   BIGINT NOT NULL DEFAULT 0,
   status VARCHAR(20) CHECK (status IN ('pending', 'released', 'refunded')) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

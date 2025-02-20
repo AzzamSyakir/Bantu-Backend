@@ -3,6 +3,7 @@ package repository
 import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/entity"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/url"
@@ -88,7 +89,7 @@ func (jobRepository *JobRepository) CreateJobRepository(job *entity.JobEntity) (
 		return nil, err
 	}
 
-	id := job.ID.String()
+	id := job.ID
 	result, err := jobRepository.GetJobByIDRepository(id)
 	if err != nil {
 		return nil, err
@@ -372,4 +373,28 @@ func (jobRepository *JobRepository) DeleteReviewRepository(jobID, reviewID strin
 		return errors.New("delete review is failed")
 	}
 	return nil
+}
+
+func (jobRepository *JobRepository) GetProposalsById(id string) (*entity.ProposalEntity, error) {
+	var proposal entity.ProposalEntity
+
+	query := "SELECT * FROM proposals WHERE id = $1"
+	err := jobRepository.Db.DB.Connection.QueryRow(query, id).Scan(
+		&proposal.ID,
+		&proposal.JobID,
+		&proposal.FreelancerID,
+		&proposal.ProposalText,
+		&proposal.ProposedPrice,
+		&proposal.Status,
+		&proposal.CreatedAt,
+		&proposal.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("proposal not found")
+		}
+		return nil, err
+	}
+
+	return &proposal, nil
 }
