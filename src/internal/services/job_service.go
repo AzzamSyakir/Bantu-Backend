@@ -28,9 +28,9 @@ func NewJobService(jobRepo *repository.JobRepository, producer *producer.Service
 }
 
 func (jobService *JobService) GetJobsService(writer http.ResponseWriter, reader *http.Request) error {
-	getJob, err := jobService.JobRepository.GetJobsRepository(jobService.Database)
+	getJob, err := jobService.JobRepository.GetJobsRepository()
 	if err != nil {
-		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "", err.Error())
+		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseError Failed Get Jobs", err.Error())
 	}
 	if jobService.JobRepository == nil {
 		log.Fatal("JobRepository is nil in GetJobsService")
@@ -42,7 +42,7 @@ func (jobService *JobService) GetJobsService(writer http.ResponseWriter, reader 
 func (jobService *JobService) CreateJobService(request *entity.JobEntity) error {
 	createJob, err := jobService.JobRepository.CreateJobRepository(request)
 	if err != nil {
-		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "", err.Error())
+		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseError ", err.Error())
 	}
 	return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseSuccess", createJob)
 }
@@ -52,7 +52,7 @@ func (jobService *JobService) GetJobByIDService(reader *http.Request) error {
 	id, _ := vars["id"]
 	job, err := jobService.JobRepository.GetJobByIDRepository(id)
 	if err != nil {
-		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "", err.Error())
+		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseError Database connection failed", err.Error())
 	}
 	return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseSuccess", job)
 }
@@ -62,7 +62,7 @@ func (jobService *JobService) UpdateJobService(reader *http.Request, request *en
 	id, _ := vars["id"]
 	createJob, err := jobService.JobRepository.UpdateJobRepository(id, request)
 	if err != nil {
-		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "", err.Error())
+		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseError Database connection failed", err.Error())
 	}
 	return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseSuccess", createJob)
 }
@@ -75,4 +75,12 @@ func (jobService *JobService) DeleteJobService(reader *http.Request) error {
 		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseSuccess", err.Error())
 	}
 	return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseSuccess", err)
+}
+
+func (jobService *JobService) ApplyJobService(request *entity.ProposalEntity) error {
+	job, err := jobService.JobRepository.ApplyJobRepository(request)
+	if err != nil {
+		return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseSuccess", err.Error())
+	}
+	return jobService.Producer.CreateMessageJob(jobService.Rabbitmq.Channel, "responseSuccess", job)
 }

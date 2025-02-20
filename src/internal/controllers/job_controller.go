@@ -25,6 +25,7 @@ func NewJobController(jobService *services.JobService) *JobController {
 }
 
 func (jobController *JobController) GetJobs(writer http.ResponseWriter, reader *http.Request) {
+
 	jobController.JobService.GetJobsService(writer, reader)
 	responseData := <-jobController.ResponseChannel
 	response.NewResponse(writer, &responseData)
@@ -68,6 +69,20 @@ func (jobController *JobController) UpdateJob(writer http.ResponseWriter, reader
 func (jobController *JobController) DeleteJob(writer http.ResponseWriter, reader *http.Request) {
 
 	jobController.JobService.DeleteJobService(reader)
+	responseData := <-jobController.ResponseChannel
+	response.NewResponse(writer, &responseData)
+}
+
+func (jobController *JobController) ApplyJob(writer http.ResponseWriter, reader *http.Request) {
+
+	request := entity.ProposalEntity{}
+	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
+
+	if decodeErr != nil {
+		http.Error(writer, decodeErr.Error(), 404)
+	}
+
+	jobController.JobService.ApplyJobService(&request)
 	responseData := <-jobController.ResponseChannel
 	response.NewResponse(writer, &responseData)
 }

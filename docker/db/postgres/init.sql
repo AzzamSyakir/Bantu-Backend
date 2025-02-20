@@ -9,9 +9,32 @@ DROP TABLE IF EXISTS proposals;
 
 DROP TABLE IF EXISTS jobs;
 
+DROP TABLE IF EXISTS regencies;
+
+DROP TABLE IF EXISTS provinces;
+
 DROP TABLE IF EXISTS admins;
 
 DROP TABLE IF EXISTS users;
+
+
+-- Provinces Table
+CREATE TABLE
+  provinces (
+    id SERIAL PRIMARY KEY,
+    province_name VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );
+
+-- Regencies Table
+CREATE TABLE
+  regencies (
+    id SERIAL PRIMARY KEY,
+    province_id INT NOT NULL,
+    regency_name VARCHAR(50),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_regencies_province FOREIGN KEY (province_id) REFERENCES provinces (id) ON DELETE CASCADE
+  );
 
 -- Users Table
 CREATE TABLE
@@ -44,12 +67,15 @@ CREATE TABLE
     title VARCHAR(255) NOT NULL,
     description TEXT,
     category VARCHAR(100),
-    location VARCHAR(255),
     price DECIMAL(10, 2),
+    regency_id INT NOT NULL,
+    province_id INT NOT NULL,
     posted_by INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_jobs_posted_by FOREIGN KEY (posted_by) REFERENCES users (id) ON DELETE CASCADE
+    CONSTRAINT fk_jobs_posted_by FOREIGN KEY (posted_by) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_jobs_regency FOREIGN KEY (regency_id) REFERENCES regencies (id) ON DELETE CASCADE,
+    CONSTRAINT fk_jobs_province FOREIGN KEY (province_id) REFERENCES provinces (id) ON DELETE CASCADE
   );
 
 -- Proposals Table
@@ -106,5 +132,13 @@ CREATE TABLE
     comment TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_review_job FOREIGN KEY (job_id) REFERENCES jobs (id) ON DELETE CASCADE,
-    CONSTRAINT fk_review_reviewer FOREIGN KEY (reviewer_id) REFERENCES users (id) ON DELETE CASCADE,
+    CONSTRAINT fk_review_reviewer FOREIGN KEY (reviewer_id) REFERENCES users (id) ON DELETE CASCADE
   );
+
+COPY provinces (id, province_name)
+FROM '/docker-entrypoint-initdb.d/data/provinces.csv'
+DELIMITER ',';
+
+COPY regencies (id, province_id, regency_name)
+FROM '/docker-entrypoint-initdb.d/data/regencies.csv'
+DELIMITER ',';

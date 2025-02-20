@@ -44,7 +44,7 @@ func (*ServicesProducer) CreateMessageJob(channelRabbitMQ *amqp.Channel, message
 	queueName := "JobQueue"
 	payload := map[string]interface{}{
 		"message": messageType,
-		"job":     data,
+		"data":    data,
 		"channel": channelRabbitMQ,
 	}
 	messageBody, err := json.Marshal(payload)
@@ -52,7 +52,7 @@ func (*ServicesProducer) CreateMessageJob(channelRabbitMQ *amqp.Channel, message
 		return fmt.Errorf("failed to marshal message body: %w", err)
 	}
 	message := amqp.Publishing{
-		ContentType: "text/plain",
+		ContentType: "application/json",
 		Body:        []byte(messageBody),
 	}
 	if err := channelRabbitMQ.Publish(
