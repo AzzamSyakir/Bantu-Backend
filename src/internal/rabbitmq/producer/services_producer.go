@@ -17,10 +17,10 @@ func CreateNewServicesProducer(env *configs.RabbitMqEnv) *ServicesProducer {
 		Env: env,
 	}
 }
-func (servicesProducer *ServicesProducer) CreateMessageError(channelRabbitMQ *amqp.Channel, data interface{}) error {
+func (servicesProducer *ServicesProducer) CreateMessageError(channelRabbitMQ *amqp.Channel, errorMessage interface{}) error {
 	queueName := servicesProducer.Env.Queues[6]
 	payload := map[string]interface{}{
-		"data": data,
+		"data": errorMessage,
 	}
 	messageBody, err := json.Marshal(payload)
 	if err != nil {
