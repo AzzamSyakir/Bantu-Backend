@@ -32,21 +32,21 @@ func NewAuthService(userRepository *repository.UserRepository, producer *produce
 	return AuthService
 }
 
-func (authService *AuthService) RegisterService(request *request.RegisterRequest) (result *entity.UserEntity, err error) {
+func (authService *AuthService) RegisterService(request *request.RegisterRequest) {
 	begin, err := authService.DatabaseConfig.DB.Connection.Begin()
 	if err != nil {
-		return nil, err
-		// authService.Producer.CreateMessageAuth(authService.EnvConfig.RabbitMq, err.Error())
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
 	}
 	if request.Email == "" || request.Name == "" || request.Password == "" {
-		rollbackErr := begin.Rollback()
-		return nil, rollbackErr
+		begin.Rollback()
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
+		return
 	}
-
 	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if hashedPasswordErr != nil {
-		rollbackErr := begin.Rollback()
-		return nil, rollbackErr
+		begin.Rollback()
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
+		return
 	}
 	currentTime := null.NewTime(time.Now(), true)
 	newUser := &entity.UserEntity{
@@ -61,16 +61,19 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 	}
 	createdUser, err := authService.UserRepository.RegisterUser(begin, newUser)
 	if err != nil {
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
 		rollbackErr := begin.Rollback()
 		if rollbackErr != nil {
-			return nil, rollbackErr
+			authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
 		}
-		return nil, err
+		return
 	}
 
 	commitErr := begin.Commit()
 	if commitErr != nil {
-		return nil, commitErr
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, commitErr.Error())
+		return
 	}
-	return createdUser, nil
+	authService.Producer.CreateMessageAuth(authService.Rabbitmq.Channel, createdUser)
+	return
 }
