@@ -1,10 +1,8 @@
 package request
 
-import "github.com/guregu/null"
-
 type RegisterRequest struct {
-	Name     null.String `json:"name"`
-	Email    null.String `json:"email"`
-	Password null.String `json:"password"`
-	Role     null.String `json:"role"`
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
 }

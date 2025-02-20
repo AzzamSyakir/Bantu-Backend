@@ -16,9 +16,12 @@ import (
 type AuthService struct {
 	DatabaseConfig *configs.DatabaseConfig
 	Rabbitmq       *configs.RabbitMqConfig
+	EnvConfig      *configs.EnvConfig
+	Producer       *producer.ServicesProducer
+	UserRepository *repository.UserRepository
 }
 
-func NewAuthService(userRepository *repository.UserRepository, producer *producer.ServicesProducer, envConfig *configs.EnvConfig, dbConfig *configs.DatabaseConfig) *AuthService {
+func NewAuthService(userRepository *repository.UserRepository, producer *producer.ServicesProducer, envConfig *configs.EnvConfig, dbConfig *configs.DatabaseConfig, rabbitmq *configs.RabbitMqConfig) *AuthService {
 	AuthService := &AuthService{
 		DatabaseConfig: dbConfig,
 		EnvConfig:      envConfig,
@@ -35,30 +38,27 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 		return nil, err
 		// authService.Producer.CreateMessageAuth(authService.EnvConfig.RabbitMq, err.Error())
 	}
-
-	if request.Email.IsZero() || request.Name.IsZero() || request.Password.IsZero() {
+	if request.Email == "" || request.Name == "" || request.Password == "" {
 		rollbackErr := begin.Rollback()
 		return nil, rollbackErr
 	}
 
-	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(request.Password.String), bcrypt.DefaultCost)
+	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if hashedPasswordErr != nil {
 		rollbackErr := begin.Rollback()
 		return nil, rollbackErr
 	}
-
 	currentTime := null.NewTime(time.Now(), true)
 	newUser := &entity.UserEntity{
-		ID:        null.NewString(string(uuid.NewString()), true),
+		ID:        string(uuid.NewString()),
 		Name:      request.Name,
 		Email:     request.Email,
-		Password:  null.NewString(string(hashedPassword), true),
+		Password:  string(hashedPassword),
 		Role:      request.Role,
-		Balance:   null.NewFloat(0.0, true),
+		Balance:   0.0,
 		CreatedAt: currentTime.Time,
 		UpdatedAt: currentTime.Time,
 	}
-
 	createdUser, err := authService.UserRepository.RegisterUser(begin, newUser)
 	if err != nil {
 		rollbackErr := begin.Rollback()
