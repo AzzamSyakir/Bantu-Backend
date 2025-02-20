@@ -27,9 +27,10 @@ type RabbitMqEnv struct {
 }
 
 type EnvConfig struct {
-	App      *AppEnv
-	Db       *PostgresEnv
-	RabbitMq *RabbitMqEnv
+	App       *AppEnv
+	Db        *PostgresEnv
+	RabbitMq  *RabbitMqEnv
+	SecretKey string
 }
 
 func NewEnvConfig() *EnvConfig {
@@ -59,6 +60,7 @@ func NewEnvConfig() *EnvConfig {
 			Password: os.Getenv("RABBITMQ_PASSWORD"),
 			Queues:   cleanedQueues,
 		},
+		SecretKey: os.Getenv("SECRET_KEY"),
 	}
 	return envConfig
 }

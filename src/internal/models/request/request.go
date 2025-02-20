@@ -16,3 +16,7 @@ type JobRequest struct {
 	ProvinceID  int64    `json:"province_id"`
 	PostedBy    int64    `json:"posted_by"`
 }
+type LoginRequest struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}

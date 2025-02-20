@@ -524,3 +524,45 @@ func (controller ControllerConsumer) ConsumeUserQueue(rabbitMQConfig *configs.Ra
 		}
 	}
 }
+func (controller ControllerConsumer) ConsumeErrorQueue(rabbitMQConfig *configs.RabbitMqConfig) {
+	expectedQueueName := controller.Env.Queues[6]
+	var queueName string
+	for _, name := range rabbitMQConfig.Queue {
+		if expectedQueueName == name.Name {
+			queueName = name.Name
+			break
+		}
+	}
+	msgs, err := rabbitMQConfig.Channel.Consume(
+		queueName,
+		"ErrorConsumer",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		fmt.Printf("Queue '%s' not available. Retrying in 5 seconds... Error: %v\n", queueName, err)
+		return
+	}
+	for msg := range msgs {
+		var payload RabbitMQPayload
+		// Parse JSON message
+		err := json.Unmarshal(msg.Body, &payload)
+		if err != nil {
+			log.Fatal("Failed to unmarshal message: ", err)
+		}
+		// Handle response
+		responseData, ok := payload.Data.(string)
+		if !ok {
+			log.Fatal("payload type not as it expected")
+		}
+		controller.AuthController.ResponseChannel <- response.Response[interface{}]{
+			Code:    payload.StatusCode,
+			Message: "Error",
+			Data:    responseData,
+		}
+	}
+
+}
