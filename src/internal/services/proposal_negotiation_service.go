@@ -48,7 +48,7 @@ func (proposalService *ProposalService) CreateProposalService(request *request.P
 	}
 	proposal, err := proposalService.JobRepository.CreateProposalRepository(proposal)
 	if err != nil {
-		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, "create proposal is failed", http.StatusBadRequest)
+		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, err, http.StatusBadRequest)
 	}
 	return proposalService.Producer.CreateMessageProposal(proposalService.RabbitMq.Channel, proposal)
 }

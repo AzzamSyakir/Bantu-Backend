@@ -123,9 +123,8 @@ func (userRepository *UserRepository) GetUserById(begin *sql.Tx, userId string) 
 		`SELECT * FROM "users" WHERE id=$1 LIMIT 1;`,
 		userId,
 	)
-
 	if queryErr != nil {
-		panic(queryErr)
+		return nil, queryErr
 	}
 	defer rows.Close()
 

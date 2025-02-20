@@ -53,7 +53,37 @@ func (transactionController *TransactionController) TopUpBalance(writer http.Res
 		response.NewResponse(writer, &responseSuccess)
 	}
 }
-
+func (transactionController *TransactionController) WithdrawBalance(writer http.ResponseWriter, reader *http.Request) {
+	request := &request.WithdrawRequest{}
+	decodeErr := json.NewDecoder(reader.Body).Decode(request)
+	if decodeErr != nil {
+		responseError := response.Response[any]{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request body",
+			Data:    decodeErr.Error(),
+		}
+		response.NewResponse(writer, &responseError)
+		return
+	}
+	cookie, err := reader.Cookie("entity_id")
+	if err != nil {
+		errorMessage := fmt.Sprintln("error getting cookies : ", err.Error())
+		responseError := response.Response[any]{
+			Code:    http.StatusInternalServerError,
+			Message: "Unauthorized",
+			Data:    errorMessage,
+		}
+		response.NewResponse(writer, &responseError)
+	}
+	userId := cookie.Value
+	transactionController.TransactionService.WithdrawBalance(request, userId)
+	select {
+	case responseError := <-transactionController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-transactionController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
+}
 func (transactionController *TransactionController) PayFreelancer(writer http.ResponseWriter, reader *http.Request) {
 	vars := mux.Vars(reader)
 	proposalId := vars["proposalId"]

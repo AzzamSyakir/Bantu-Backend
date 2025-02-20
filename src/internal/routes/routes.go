@@ -67,5 +67,6 @@ func (route *Route) Register() {
 	route.Router.HandleFunc("/chat/history", route.ChatController.GetChats).Methods("GET")
 
 	route.Router.HandleFunc("/transaction/wallet/topup", route.TransactionController.TopUpBalance).Methods("POST")
+	route.Router.HandleFunc("/transaction/wallet/withdraw", route.TransactionController.WithdrawBalance).Methods("POST")
 	route.Router.HandleFunc("/transaction/wallet/pay/{proposalId}", route.TransactionController.PayFreelancer).Methods("POST")
 }
