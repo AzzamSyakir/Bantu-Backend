@@ -52,5 +52,6 @@ func (r *Route) Register() {
 	r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.GetProposals).Methods("GET")
 	r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.CreateProposal).Methods("POST")
 	r.Router.HandleFunc("/jobs/{id}/proposals/{proposalId}", r.ProposalController.UpdateProposal).Methods("PUT")
+	r.Router.HandleFunc("/jobs/{id}/proposals/{proposalId}/accept", r.ProposalController.AcceptProposal).Methods("PUT")
 	// r.Router.HandleFunc("/jobs/{id}/payment", r.PaymentController.ProcessPayment).Methods("POST")
 }

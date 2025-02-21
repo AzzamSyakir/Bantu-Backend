@@ -6,6 +6,8 @@ import (
 	"bantu-backend/src/internal/services"
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type ProposalController struct {
@@ -51,6 +53,14 @@ func (proposalController *ProposalController) UpdateProposal(writer http.Respons
 	}
 
 	proposalController.ProposalService.UpdateProposalService(reader, &request)
+	responseData := <-proposalController.ResponseChannel
+	response.NewResponse(writer, &responseData)
+}
+
+func (proposalController *ProposalController) AcceptProposal(writer http.ResponseWriter, reader *http.Request) {
+	vars := mux.Vars(reader)
+	id, _ := vars["proposalId"]
+	proposalController.ProposalService.AcceptProposalService(id)
 	responseData := <-proposalController.ResponseChannel
 	response.NewResponse(writer, &responseData)
 }

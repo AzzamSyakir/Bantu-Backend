@@ -12,6 +12,7 @@ import (
 )
 
 type ControllerConsumer struct {
+	Env                   *configs.RabbitMqEnv
 	AuthController        *controllers.AuthController
 	ChatController        *controllers.ChatController
 	JobController         *controllers.JobController
@@ -21,6 +22,7 @@ type ControllerConsumer struct {
 }
 
 func NewControllerConsumer(
+	env *configs.RabbitMqEnv,
 	authController *controllers.AuthController,
 	chatController *controllers.ChatController,
 	jobController *controllers.JobController,
@@ -29,6 +31,7 @@ func NewControllerConsumer(
 	userController *controllers.UserController,
 ) *ControllerConsumer {
 	return &ControllerConsumer{
+		Env:                   env,
 		AuthController:        authController,
 		ChatController:        chatController,
 		JobController:         jobController,
@@ -226,6 +229,7 @@ func (controller ControllerConsumer) ConsumeJobQueue(rabbitMQConfig *configs.Rab
 	for msg := range msgs {
 		var payload RabbitMQPayload
 		// Parse JSON message
+		fmt.Println("test")
 		err := json.Unmarshal(msg.Body, &payload)
 		if err != nil {
 			log.Fatal("Failed to unmarshal message: ", err)
@@ -558,7 +562,7 @@ func (controller ControllerConsumer) ConsumeErrorQueue(rabbitMQConfig *configs.R
 		if !ok {
 			log.Fatal("payload type not as it expected")
 		}
-		controller.AuthController.ResponseChannel <- response.Response[interface{}]{
+		controller.JobController.ResponseChannel <- response.Response[interface{}]{
 			Code:    payload.StatusCode,
 			Message: "Error",
 			Data:    responseData,

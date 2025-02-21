@@ -228,17 +228,18 @@ func (jobRepository *JobRepository) UpdateProposalRepository(id string, proposal
 	return proposal, nil
 }
 
-func (jobRepository *JobRepository) AcceptProposalRepository(id string, proposal *entity.ProposalEntity) (*entity.ProposalEntity, error) {
+func (jobRepository *JobRepository) AcceptProposalRepository(id string) (*entity.ProposalEntity, error) {
 	query := `
 		UPDATE jobs SET status = $1 WHERE id = $2;
 	`
 	_, err := jobRepository.Db.DB.Connection.Exec(
 		query,
-		proposal.Status,
+		"accepted",
 		id,
 	)
+
 	if err != nil {
 		return nil, err
 	}
-	return proposal, nil
+	return nil, nil
 }
