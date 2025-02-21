@@ -6,16 +6,12 @@ import (
 	"bantu-backend/src/internal/models/request"
 	"bantu-backend/src/internal/rabbitmq/producer"
 	"bantu-backend/src/internal/repository"
-<<<<<<< HEAD
 	"errors"
-	"regexp"
-=======
 	"net/http"
->>>>>>> 9dc2a9b6a4ebe9ce0a8b2612af5ec657dea343b4
+	"regexp"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/guregu/null"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -62,7 +58,7 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 	if request.Role == "" {
 		request.Role = "client"
 	}
-	
+
 	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if hashedPasswordErr != nil {
 		begin.Rollback()
@@ -77,8 +73,8 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 		Password:  string(hashedPassword),
 		Role:      request.Role,
 		Balance:   0.0,
-		CreatedAt: currentTime.Time,
-		UpdatedAt: currentTime.Time,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	createdUser, err := authService.UserRepository.RegisterUser(begin, newUser)
@@ -93,7 +89,7 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, commitErr.Error(), http.StatusInternalServerError)
 		return
 	}
-	
+
 	authService.Producer.CreateMessageAuth(authService.Rabbitmq.Channel, createdUser)
 	return
 }

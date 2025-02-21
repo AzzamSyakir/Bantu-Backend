@@ -42,7 +42,7 @@ func NewRoute(
 func (r *Route) Register() {
 	r.Router.HandleFunc("/register", r.AuthController.Register).Methods("POST")
 	r.Router.HandleFunc("/login", r.AuthController.Login).Methods("POST")
-	// eg
+
 	r.Router.HandleFunc("/jobs", r.JobController.GetJobs).Methods("GET")
 	r.Router.HandleFunc("/jobs", r.JobController.CreateJob).Methods("POST")
 	r.Router.HandleFunc("/jobs/{id}", r.JobController.GetJobByID).Methods("GET")
