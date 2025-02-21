@@ -29,19 +29,9 @@ func (authController *AuthController) Register(writer http.ResponseWriter, reade
 		http.Error(writer, "Invalid request body", http.StatusBadRequest)
 		return
 	}
-
-	service, err := authController.AuthService.RegisterService(request)
-	if err != nil {
-		log.Println(err)
-		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
-
-	response.NewResponse(writer, &response.Response[any]{
-		Code:    http.StatusOK,
-		Message: "Register success",
-		Data:    service,
-	})
+	authController.AuthService.RegisterService(request)
+	responseData := <-authController.ResponseChannel
+	response.NewResponse(writer, &responseData)
 }
 
 func (authController *AuthController) Login(writer http.ResponseWriter, reader *http.Request) {

@@ -35,7 +35,6 @@ func (jobController *JobController) CreateJob(writer http.ResponseWriter, reader
 
 	request := entity.JobEntity{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
-
 	if decodeErr != nil {
 		http.Error(writer, decodeErr.Error(), 404)
 	}
@@ -56,7 +55,6 @@ func (jobController *JobController) UpdateJob(writer http.ResponseWriter, reader
 
 	request := entity.JobEntity{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
-
 	if decodeErr != nil {
 		http.Error(writer, decodeErr.Error(), 404)
 	}
@@ -73,16 +71,16 @@ func (jobController *JobController) DeleteJob(writer http.ResponseWriter, reader
 	response.NewResponse(writer, &responseData)
 }
 
-func (jobController *JobController) ApplyJob(writer http.ResponseWriter, reader *http.Request) {
+// func (jobController *JobController) ApplyJob(writer http.ResponseWriter, reader *http.Request) {
 
-	request := entity.ProposalEntity{}
-	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
+// 	request := entity.ProposalEntity{}
+// 	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
 
-	if decodeErr != nil {
-		http.Error(writer, decodeErr.Error(), 404)
-	}
+// 	if decodeErr != nil {
+// 		http.Error(writer, decodeErr.Error(), 404)
+// 	}
 
-	jobController.JobService.ApplyJobService(&request)
-	responseData := <-jobController.ResponseChannel
-	response.NewResponse(writer, &responseData)
-}
+// 	jobController.JobService.ApplyJobService(&request)
+// 	responseData := <-jobController.ResponseChannel
+// 	response.NewResponse(writer, &responseData)
+// }

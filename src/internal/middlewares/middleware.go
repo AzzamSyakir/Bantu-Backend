@@ -1,6 +1,8 @@
 package middlewares
 
 import (
+	"bantu-backend/src/configs"
+	"bantu-backend/src/internal/rabbitmq/producer"
 	"net/http"
 	"strings"
 
@@ -9,8 +11,9 @@ import (
 )
 
 type Middleware struct {
-	Cors    *cors.Cors
-	limiter *rate.Limiter
+	Rabbitmq *configs.RabbitMqConfig
+	Producer *producer.ServicesProducer
+	Cors     *cors.Cors
 }
 
 func NewMiddleware() *Middleware {
@@ -21,17 +24,20 @@ func NewMiddleware() *Middleware {
 			AllowedHeaders:   []string{"*"},
 			Debug:            false,
 		}),
-		limiter: rate.NewLimiter(10, 20),
 	}
 }
-
-func (m *Middleware) RateLimitMiddleware(next http.Handler) http.Handler {
+func (middleware *Middleware) RateLimitMiddleware(next http.Handler) http.Handler {
+	limiter := rate.NewLimiter(2, 4)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if !m.limiter.Allow() {
-			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
+		if !limiter.Allow() {
+
+			errorMessage := "The API is at capacity, try again later."
+			w.WriteHeader(http.StatusTooManyRequests)
+			middleware.Producer.CreateMessageError(middleware.Rabbitmq.Channel, errorMessage, http.StatusTooManyRequests)
 			return
+		} else {
+			next.ServeHTTP(w, r)
 		}
-		next.ServeHTTP(w, r)
 	})
 }
 

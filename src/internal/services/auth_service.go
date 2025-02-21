@@ -6,8 +6,12 @@ import (
 	"bantu-backend/src/internal/models/request"
 	"bantu-backend/src/internal/rabbitmq/producer"
 	"bantu-backend/src/internal/repository"
+<<<<<<< HEAD
 	"errors"
 	"regexp"
+=======
+	"net/http"
+>>>>>>> 9dc2a9b6a4ebe9ce0a8b2612af5ec657dea343b4
 	"time"
 
 	"github.com/google/uuid"
@@ -25,54 +29,47 @@ type AuthService struct {
 
 func NewAuthService(userRepository *repository.UserRepository, producer *producer.ServicesProducer, envConfig *configs.EnvConfig, dbConfig *configs.DatabaseConfig, rabbitmq *configs.RabbitMqConfig) *AuthService {
 	AuthService := &AuthService{
-		DatabaseConfig: dbConfig,
-		EnvConfig:      envConfig,
-		Producer:       producer,
 		UserRepository: userRepository,
+		Producer:       producer,
+		EnvConfig:      envConfig,
+		DatabaseConfig: dbConfig,
 		Rabbitmq:       rabbitmq,
 	}
 	return AuthService
 }
 
-func (authService *AuthService) RegisterService(request *request.RegisterRequest) (result *entity.UserEntity, err error) {
+func (authService *AuthService) RegisterService(request *request.RegisterRequest) {
 	begin, err := authService.DatabaseConfig.DB.Connection.Begin()
 	if err != nil {
-		return nil, err
-		// authService.Producer.CreateMessageAuth(authService.EnvConfig.RabbitMq, err.Error())
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusInternalServerError)
 	}
 
 	if request.Email == "" || request.Name == "" || request.Password == "" {
-		rollbackErr := begin.Rollback()
-		if rollbackErr != nil {
-			return nil, rollbackErr
-		}
-		return nil, errors.New("email, name and password cant be empty")
+		errMessage := "email, name and password must be provided"
+		begin.Rollback()
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, errMessage, http.StatusInternalServerError)
+		return
 	}
 
 	emailRegex := `^(?i)[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$`
 	re := regexp.MustCompile(emailRegex)
 	if !re.MatchString(request.Email) {
-		rollbackErr := begin.Rollback()
-		if rollbackErr != nil {
-			return nil, rollbackErr
-		}
-		return nil, errors.New("invalid email")
+		errMessage := "invalid email type"
+		begin.Rollback()
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, errMessage, http.StatusInternalServerError)
 	}
 
 	if request.Role == "" {
 		request.Role = "client"
 	}
-
+	
 	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if hashedPasswordErr != nil {
-		rollbackErr := begin.Rollback()
-		if rollbackErr != nil {
-			return nil, rollbackErr
-		}
-		return nil, hashedPasswordErr
+		begin.Rollback()
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, hashedPasswordErr.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	currentTime := null.NewTime(time.Now(), true)
 	newUser := &entity.UserEntity{
 		ID:        string(uuid.NewString()),
 		Name:      request.Name,
@@ -86,18 +83,19 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 
 	createdUser, err := authService.UserRepository.RegisterUser(begin, newUser)
 	if err != nil {
-		rollbackErr := begin.Rollback()
-		if rollbackErr != nil {
-			return nil, rollbackErr
-		}
-		return nil, err
+		begin.Rollback()
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	commitErr := begin.Commit()
 	if commitErr != nil {
-		return nil, commitErr
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, commitErr.Error(), http.StatusInternalServerError)
+		return
 	}
-	return createdUser, nil
+	
+	authService.Producer.CreateMessageAuth(authService.Rabbitmq.Channel, createdUser)
+	return
 }
 
 func (authService *AuthService) LoginService(request *request.LoginRequest) (result *entity.UserEntity, err error) {

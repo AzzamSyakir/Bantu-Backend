@@ -2,6 +2,7 @@ package configs
 
 import (
 	"os"
+	"strings"
 )
 
 type AppEnv struct {
@@ -22,7 +23,7 @@ type RabbitMqEnv struct {
 	Port     string
 	User     string
 	Password string
-	Queue    string
+	Queues   []string
 }
 
 type EnvConfig struct {
@@ -33,6 +34,12 @@ type EnvConfig struct {
 }
 
 func NewEnvConfig() *EnvConfig {
+	queueNamesEnv := os.Getenv("RABBITMQ_QUEUE_NAMES")
+	queues := strings.Split(queueNamesEnv, ",")
+	cleanedQueues := make([]string, len(queues))
+	for i, q := range queues {
+		cleanedQueues[i] = strings.TrimSpace(q)
+	}
 	envConfig := &EnvConfig{
 		App: &AppEnv{
 			AppHost: os.Getenv("GATEWAY_APP_HOST"),
@@ -51,7 +58,7 @@ func NewEnvConfig() *EnvConfig {
 			Port:     os.Getenv("RABBITMQ_PORT"),
 			User:     os.Getenv("RABBITMQ_USER"),
 			Password: os.Getenv("RABBITMQ_PASSWORD"),
-			Queue:    os.Getenv("RABBITMQ_QUEUE_NAMES"),
+			Queues:   cleanedQueues,
 		},
 		SecretKey: os.Getenv("SECRET_KEY"),
 	}

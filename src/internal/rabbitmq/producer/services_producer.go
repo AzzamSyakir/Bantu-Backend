@@ -1,23 +1,79 @@
 package producer
 
 import (
+	"bantu-backend/src/configs"
 	"encoding/json"
 	"fmt"
 
 	"github.com/streadway/amqp"
 )
 
-type ServicesProducer struct{}
-
-func CreateNewServicesProducer() *ServicesProducer {
-	return &ServicesProducer{}
+type ServicesProducer struct {
+	Env *configs.RabbitMqEnv
 }
 
-func (*ServicesProducer) CreateMessageAuth(channelRabbitMQ *amqp.Channel, seller string) error {
-	queueName := "AuthQueue"
+func CreateNewServicesProducer(env *configs.RabbitMqEnv) *ServicesProducer {
+	return &ServicesProducer{
+		Env: env,
+	}
+}
+func (servicesProducer *ServicesProducer) CreateMessageError(channelRabbitMQ *amqp.Channel, errorMessage interface{}, statusCode int) error {
+	queueName := servicesProducer.Env.Queues[6]
 	payload := map[string]interface{}{
-		"message": "Auth Process",
-		"seller":  seller,
+		"data":        errorMessage,
+		"status_code": statusCode,
+	}
+	messageBody, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message body: %w", err)
+	}
+	msg := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte(messageBody),
+	}
+	if err := channelRabbitMQ.Publish(
+		"",        // exchange
+		queueName, // queue name
+		false,     // mandatory
+		false,     // immediate
+		msg,       // message to publish
+	); err != nil {
+		return fmt.Errorf("failed to publish message to queue: %w", err)
+	}
+	return nil
+}
+
+func (servicesProducer *ServicesProducer) CreateMessageAuth(channelRabbitMQ *amqp.Channel, data any) error {
+	queueName := servicesProducer.Env.Queues[0]
+	payload := map[string]any{
+		"data":    data,
+		"channel": channelRabbitMQ,
+	}
+	messageBody, err := json.Marshal(payload)
+	if err != nil {
+		return fmt.Errorf("failed to marshal message body: %w", err)
+	}
+	msg := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte(messageBody),
+	}
+	if err := channelRabbitMQ.Publish(
+		"",        // exchange
+		queueName, // queue name
+		false,     // mandatory
+		false,     // immediate
+		msg,       // message to publish
+	); err != nil {
+		return fmt.Errorf("failed to publish message to queue: %w", err)
+	}
+	return nil
+}
+
+func (servicesProducer *ServicesProducer) CreateMessageJob(channelRabbitMQ *amqp.Channel, messageType string, data interface{}) error {
+	queueName := servicesProducer.Env.Queues[2]
+	payload := map[string]interface{}{
+		"message": messageType,
+		"data":    data,
 		"channel": channelRabbitMQ,
 	}
 	messageBody, err := json.Marshal(payload)
@@ -29,19 +85,19 @@ func (*ServicesProducer) CreateMessageAuth(channelRabbitMQ *amqp.Channel, seller
 		Body:        []byte(messageBody),
 	}
 	if err := channelRabbitMQ.Publish(
-		"",        // exchange
-		queueName, // queue name
-		false,     // mandatory
-		false,     // immediate
-		message,   // message to publish
+		"",
+		queueName,
+		false,
+		false,
+		message,
 	); err != nil {
 		return fmt.Errorf("failed to publish message to queue: %w", err)
 	}
 	return nil
 }
 
-func (*ServicesProducer) CreateMessageJob(channelRabbitMQ *amqp.Channel, messageType string, data interface{}) error {
-	queueName := "JobQueue"
+func (*ServicesProducer) ProducerProposal(channelRabbitMQ *amqp.Channel, messageType string, data interface{}) error {
+	queueName := "ProposalQueue"
 	payload := map[string]interface{}{
 		"message": messageType,
 		"data":    data,
@@ -52,7 +108,7 @@ func (*ServicesProducer) CreateMessageJob(channelRabbitMQ *amqp.Channel, message
 		return fmt.Errorf("failed to marshal message body: %w", err)
 	}
 	message := amqp.Publishing{
-		ContentType: "application/json",
+		ContentType: "text/plain",
 		Body:        []byte(messageBody),
 	}
 	if err := channelRabbitMQ.Publish(

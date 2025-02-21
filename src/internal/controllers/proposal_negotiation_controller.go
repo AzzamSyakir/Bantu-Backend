@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"bantu-backend/src/internal/entity"
 	"bantu-backend/src/internal/models/response"
 	"bantu-backend/src/internal/services"
+	"encoding/json"
+	"net/http"
 )
 
 type ProposalController struct {
@@ -15,4 +18,39 @@ func NewProposalController(jobService *services.ProposalService) *ProposalContro
 		ProposalService: jobService,
 		ResponseChannel: make(chan response.Response[any], 1),
 	}
+}
+
+func (proposalController *ProposalController) GetProposals(writer http.ResponseWriter, reader *http.Request) {
+
+	proposalController.ProposalService.GetProposalsService(reader)
+	responseData := <-proposalController.ResponseChannel
+	response.NewResponse(writer, &responseData)
+}
+
+func (proposalController *ProposalController) CreateProposal(writer http.ResponseWriter, reader *http.Request) {
+
+	request := entity.ProposalEntity{}
+	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
+
+	if decodeErr != nil {
+		http.Error(writer, decodeErr.Error(), 404)
+	}
+
+	proposalController.ProposalService.CreateProposalService(&request)
+	responseData := <-proposalController.ResponseChannel
+	response.NewResponse(writer, &responseData)
+}
+
+func (proposalController *ProposalController) UpdateProposal(writer http.ResponseWriter, reader *http.Request) {
+
+	request := entity.ProposalEntity{}
+	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
+
+	if decodeErr != nil {
+		http.Error(writer, decodeErr.Error(), 404)
+	}
+
+	proposalController.ProposalService.UpdateProposalService(reader, &request)
+	responseData := <-proposalController.ResponseChannel
+	response.NewResponse(writer, &responseData)
 }
