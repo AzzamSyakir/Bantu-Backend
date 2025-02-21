@@ -66,6 +66,7 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 		return
 	}
 
+	currentTime := null.NewTime(time.Now(), true)
 	newUser := &entity.UserEntity{
 		ID:        string(uuid.NewString()),
 		Name:      request.Name,

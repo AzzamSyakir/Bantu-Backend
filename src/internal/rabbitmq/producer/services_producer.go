@@ -96,8 +96,8 @@ func (servicesProducer *ServicesProducer) CreateMessageJob(channelRabbitMQ *amqp
 	return nil
 }
 
-func (*ServicesProducer) ProducerProposal(channelRabbitMQ *amqp.Channel, messageType string, data interface{}) error {
-	queueName := "ProposalQueue"
+func (servicesProducer *ServicesProducer) CreateMessageProposal(channelRabbitMQ *amqp.Channel, messageType string, data interface{}) error {
+	queueName := servicesProducer.Env.Queues[3]
 	payload := map[string]interface{}{
 		"message": messageType,
 		"data":    data,

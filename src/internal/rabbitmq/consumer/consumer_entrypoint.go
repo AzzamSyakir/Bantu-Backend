@@ -27,7 +27,7 @@ func NewConsumerEntrypointInit(
 	}
 }
 func ControllerConsumerStart(consumerEntrypoint *ConsumerEntrypoint) {
-	go consumerEntrypoint.ControllerConsumer.ConsumeErrorQueue(consumerEntrypoint.RabbitMq)
+	// go consumerEntrypoint.ControllerConsumer.ConsumeErrorQueue(consumerEntrypoint.RabbitMq)
 	go consumerEntrypoint.ControllerConsumer.ConsumeAuthQueue(consumerEntrypoint.RabbitMq)
 	go consumerEntrypoint.ControllerConsumer.ConsumeChatQueue(consumerEntrypoint.RabbitMq)
 	go consumerEntrypoint.ControllerConsumer.ConsumeJobQueue(consumerEntrypoint.RabbitMq)

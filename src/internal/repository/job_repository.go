@@ -155,7 +155,10 @@ func (jobRepository *JobRepository) DeleteJobRepository(id string) error {
 func (jobRepository *JobRepository) GetProposalsRepository(id string) (*[]entity.ProposalEntity, error) {
 	query := `SELECT * FROM proposals WHERE id = $1;
 	`
-	rows, _ := jobRepository.Db.DB.Connection.Query(query, id)
+	rows, err := jobRepository.Db.DB.Connection.Query(query, id)
+	if err != nil {
+		return nil, err
+	}
 	defer rows.Close()
 
 	var proposals []entity.ProposalEntity
@@ -225,17 +228,18 @@ func (jobRepository *JobRepository) UpdateProposalRepository(id string, proposal
 	return proposal, nil
 }
 
-func (jobRepository *JobRepository) AcceptProposalRepository(id string, proposal *entity.ProposalEntity) (*entity.ProposalEntity, error) {
+func (jobRepository *JobRepository) AcceptProposalRepository(id string) (*entity.ProposalEntity, error) {
 	query := `
 		UPDATE jobs SET status = $1 WHERE id = $2;
 	`
 	_, err := jobRepository.Db.DB.Connection.Exec(
 		query,
-		proposal.Status,
+		"accepted",
 		id,
 	)
+
 	if err != nil {
 		return nil, err
 	}
-	return proposal, nil
+	return nil, nil
 }
