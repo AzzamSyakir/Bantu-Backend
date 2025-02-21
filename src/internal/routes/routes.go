@@ -40,15 +40,16 @@ func NewRoute(
 }
 
 func (r *Route) Register() {
+	r.Router.HandleFunc("/register", r.AuthController.Register).Methods("POST")
 	// eg
-	// r.Router.HandleFunc("/jobs", r.JobController.CreateJob).Methods("POST")
-	// r.Router.HandleFunc("/jobs", r.JobController.GetJobs).Methods("GET")
-	// r.Router.HandleFunc("/jobs/{id}", r.JobController.GetJobByID).Methods("GET")
-	// r.Router.HandleFunc("/jobs/{id}", r.JobController.UpdateJob).Methods("PUT")
-	// r.Router.HandleFunc("/jobs/{id}", r.JobController.DeleteJob).Methods("DELETE")
-	// r.Router.HandleFunc("/jobs/{id}/apply", r.JobController.ApplyJob).Methods("POST")
-	// r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.CreateProposal).Methods("POST")
-	// r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.GetProposals).Methods("GET")
-	// r.Router.HandleFunc("/jobs/{id}/proposals/{proposalId}", r.ProposalController.UpdateProposal).Methods("PUT")
+	r.Router.HandleFunc("/jobs", r.JobController.GetJobs).Methods("GET")
+	r.Router.HandleFunc("/jobs", r.JobController.CreateJob).Methods("POST")
+	r.Router.HandleFunc("/jobs/{id}", r.JobController.GetJobByID).Methods("GET")
+	r.Router.HandleFunc("/jobs/{id}", r.JobController.UpdateJob).Methods("PUT")
+	r.Router.HandleFunc("/jobs/{id}", r.JobController.DeleteJob).Methods("DELETE")
+
+	r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.GetProposals).Methods("GET")
+	r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.CreateProposal).Methods("POST")
+	r.Router.HandleFunc("/jobs/{id}/proposals/{proposalId}", r.ProposalController.UpdateProposal).Methods("PUT")
 	// r.Router.HandleFunc("/jobs/{id}/payment", r.PaymentController.ProcessPayment).Methods("POST")
 }

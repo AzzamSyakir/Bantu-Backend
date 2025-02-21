@@ -2,7 +2,6 @@ package configs
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/streadway/amqp"
 )
@@ -60,19 +59,7 @@ func RabbitMqChannel(connection *amqp.Connection) (*amqp.Channel, error) {
 
 func RabbitMqQueue(channel *amqp.Channel, env *EnvConfig) ([]*amqp.Queue, error) {
 	var declaredQueues []*amqp.Queue
-	queueNamesStr := env.RabbitMq.Queue
-
-	// Trim spaces and split properly
-	rawQueueNames := strings.Split(queueNamesStr, ",")
-	queueNames := make([]string, 0, len(rawQueueNames))
-
-	for _, name := range rawQueueNames {
-		trimmedName := strings.TrimSpace(name)
-		if trimmedName != "" {
-			queueNames = append(queueNames, trimmedName)
-		}
-	}
-	for _, name := range queueNames {
+	for _, name := range env.RabbitMq.Queues {
 		rabbitmqQueue, err := channel.QueueDeclare(
 			name,
 			true,  // Durable

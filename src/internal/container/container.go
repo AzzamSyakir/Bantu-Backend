@@ -36,15 +36,15 @@ func NewContainer() *Container {
 	// setup repo
 	userRepository := repository.NewUserRepository()
 	chatRepository := repository.NewChatRepository()
-	jobRepository := repository.NewJobRepository()
+	jobRepository := repository.NewJobRepository(dbConfig)
 	transactionRepository := repository.NewTransactionRepository()
 	// setup services
-	servicesProducer := producer.CreateNewServicesProducer()
-	authService := services.NewAuthService(userRepository, servicesProducer)
+	servicesProducer := producer.CreateNewServicesProducer(envConfig.RabbitMq)
+	authService := services.NewAuthService(userRepository, servicesProducer, envConfig, dbConfig, rabbitmqConfig)
 	userService := services.NewUserService(userRepository, servicesProducer)
 	chatService := services.NewChatService(chatRepository, servicesProducer)
-	jobService := services.NewJobService(jobRepository, servicesProducer)
-	proposalService := services.NewProposalService(jobRepository, servicesProducer)
+	jobService := services.NewJobService(jobRepository, servicesProducer, rabbitmqConfig)
+	proposalService := services.NewProposalService(jobRepository, servicesProducer, rabbitmqConfig)
 	transactionService := services.NewTransactionService(transactionRepository, servicesProducer)
 	// setup controller
 	authController := controllers.NewAuthController(authService)
@@ -55,7 +55,7 @@ func NewContainer() *Container {
 	transactionController := controllers.NewTransactionController(transactionService)
 	// setup controllerContainer
 	controllerContainer := NewControllerContainer(authController, userController, chatController, jobController, proposalController, transactionController)
-	controllerConsumer := consumer.NewControllerConsumer(authController, chatController, jobController, proposalController, transactionController, userController)
+	controllerConsumer := consumer.NewControllerConsumer(envConfig.RabbitMq, authController, chatController, jobController, proposalController, transactionController, userController)
 	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
 	consumerInit.ConsumerEntrypointStart()
 	router := mux.NewRouter()

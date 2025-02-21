@@ -22,5 +22,4 @@ func main() {
 		log.Fatalf("failed to serve HTTP: %v", listenAndServeErr)
 	}
 	fmt.Println("app finish")
-
 }
