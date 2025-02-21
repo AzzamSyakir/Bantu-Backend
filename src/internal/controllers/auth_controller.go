@@ -11,13 +11,13 @@ import (
 
 type AuthController struct {
 	AuthService     *services.AuthService
-	ResponseChannel chan response.Response[any]
+	ResponseChannel *response.ResponseChannel
 }
 
-func NewAuthController(authService *services.AuthService) *AuthController {
+func NewAuthController(authService *services.AuthService, responseChannel *response.ResponseChannel) *AuthController {
 	return &AuthController{
 		AuthService:     authService,
-		ResponseChannel: make(chan response.Response[any], 1),
+		ResponseChannel: responseChannel,
 	}
 }
 
@@ -30,8 +30,12 @@ func (authController *AuthController) Register(writer http.ResponseWriter, reade
 		return
 	}
 	authController.AuthService.RegisterService(request)
-	responseData := <-authController.ResponseChannel
-	response.NewResponse(writer, &responseData)
+	select {
+	case responseError := <-authController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-authController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
 }
 
 func (authController *AuthController) Login(writer http.ResponseWriter, reader *http.Request) {
@@ -43,16 +47,11 @@ func (authController *AuthController) Login(writer http.ResponseWriter, reader *
 		return
 	}
 
-	service, err := authController.AuthService.LoginService(request)
-	if err != nil {
-		log.Println(err)
-		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
-		return
+	authController.AuthService.LoginService(request)
+	select {
+	case responseError := <-authController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-authController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
 	}
-
-	response.NewResponse(writer, &response.Response[any]{
-		Code:    http.StatusOK,
-		Message: "Login success",
-		Data:    service,
-	})
 }

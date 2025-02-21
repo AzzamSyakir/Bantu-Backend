@@ -8,24 +8,15 @@ type RegisterRequest struct {
 }
 
 type JobRequest struct {
-	Title       string   `json:"title"`
-	Description *string  `json:"description"`
-	Category    *string  `json:"category"`
-	Price       *float64 `json:"price"`
-	RegencyID   int64    `json:"regency_id"`
-	ProvinceID  int64    `json:"province_id"`
-	PostedBy    int64    `json:"posted_by"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Category    string  `json:"category"`
+	Price       float64 `json:"price"`
+	RegencyID   int64   `json:"regency_id"`
+	ProvinceID  int64   `json:"province_id"`
+	PostedBy    int64   `json:"posted_by"`
 }
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
-}
-type JobRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Category    string `json:"category"`
-	Price       int    `json:"price"`
-	RegencyID   string `json:"regency_id"`
-	ProvinceID  string `json:"province_id"`
-	PostedBy    string `json:"posted_by"`
 }

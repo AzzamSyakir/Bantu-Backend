@@ -7,12 +7,12 @@ import (
 
 type ChatController struct {
 	ChatService     *services.ChatService
-	ResponseChannel chan response.Response[any]
+	ResponseChannel *response.ResponseChannel
 }
 
-func NewChatController(authService *services.ChatService) *ChatController {
+func NewChatController(authService *services.ChatService, responseChannel *response.ResponseChannel) *ChatController {
 	return &ChatController{
 		ChatService:     authService,
-		ResponseChannel: make(chan response.Response[any], 1),
+		ResponseChannel: responseChannel,
 	}
 }
