@@ -55,7 +55,7 @@ func NewContainer() *Container {
 	transactionController := controllers.NewTransactionController(transactionService)
 	// setup controllerContainer
 	controllerContainer := NewControllerContainer(authController, userController, chatController, jobController, proposalController, transactionController)
-	controllerConsumer := consumer.NewControllerConsumer(envConfig.RabbitMq, authController, chatController, jobController, proposalController, transactionController, userController)
+	controllerConsumer := consumer.NewControllerConsumer(authController, chatController, jobController, proposalController, transactionController, userController)
 	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
 	consumerInit.ConsumerEntrypointStart()
 	router := mux.NewRouter()
