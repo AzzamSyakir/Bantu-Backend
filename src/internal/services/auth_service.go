@@ -24,10 +24,10 @@ type AuthService struct {
 
 func NewAuthService(userRepository *repository.UserRepository, producer *producer.ServicesProducer, envConfig *configs.EnvConfig, dbConfig *configs.DatabaseConfig, rabbitmq *configs.RabbitMqConfig) *AuthService {
 	AuthService := &AuthService{
-		DatabaseConfig: dbConfig,
-		EnvConfig:      envConfig,
-		Producer:       producer,
 		UserRepository: userRepository,
+		Producer:       producer,
+		EnvConfig:      envConfig,
+		DatabaseConfig: dbConfig,
 		Rabbitmq:       rabbitmq,
 	}
 	return AuthService
