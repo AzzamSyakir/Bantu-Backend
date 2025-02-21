@@ -10,9 +10,9 @@ type ConsumerEntrypoint struct {
 	RabbitMq           *configs.RabbitMqConfig
 }
 type RabbitMQPayload struct {
-	Message string `json:"message"`
-	Data    any    `json:"data"`
-	Code    int    `json:"code"`
+	Message    string `json:"message"`
+	Data       any    `json:"data"`
+	StatusCode int    `json:"status_code"`
 }
 
 func NewConsumerEntrypointInit(

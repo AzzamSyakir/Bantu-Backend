@@ -525,22 +525,15 @@ func (controller ControllerConsumer) ConsumeErrorQueue(rabbitMQConfig *configs.R
 			log.Fatal("Failed to unmarshal message: ", err)
 		}
 		// Handle response
-		dataBytes, err := json.Marshal(payload.Data)
-		if err != nil {
-			log.Fatal("Failed to marshal response data: ", err)
-			continue
-		}
-
-		var responseData string
-		err = json.Unmarshal(dataBytes, &responseData)
-		if err != nil {
-			log.Fatal("Failed to unmarshal data: ", err)
-			continue
+		responseData, ok := payload.Data.(string)
+		if !ok {
+			log.Fatal("payload type not as it expected")
 		}
 		controller.AuthController.ResponseChannel <- response.Response[interface{}]{
-			Code:    400,
+			Code:    payload.StatusCode,
 			Message: "Error",
 			Data:    responseData,
 		}
 	}
+
 }

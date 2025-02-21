@@ -6,6 +6,7 @@ import (
 	"bantu-backend/src/internal/models/request"
 	"bantu-backend/src/internal/rabbitmq/producer"
 	"bantu-backend/src/internal/repository"
+	"net/http"
 	"time"
 
 	"github.com/google/uuid"
@@ -35,17 +36,17 @@ func NewAuthService(userRepository *repository.UserRepository, producer *produce
 func (authService *AuthService) RegisterService(request *request.RegisterRequest) {
 	begin, err := authService.DatabaseConfig.DB.Connection.Begin()
 	if err != nil {
-		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusInternalServerError)
 	}
 	if request.Email == "" || request.Name == "" || request.Password == "" {
 		begin.Rollback()
-		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusBadRequest)
 		return
 	}
 	hashedPassword, hashedPasswordErr := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
 	if hashedPasswordErr != nil {
 		begin.Rollback()
-		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	currentTime := null.NewTime(time.Now(), true)
@@ -61,17 +62,17 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 	}
 	createdUser, err := authService.UserRepository.RegisterUser(begin, newUser)
 	if err != nil {
-		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusInternalServerError)
 		rollbackErr := begin.Rollback()
 		if rollbackErr != nil {
-			authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error())
+			authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusInternalServerError)
 		}
 		return
 	}
 
 	commitErr := begin.Commit()
 	if commitErr != nil {
-		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, commitErr.Error())
+		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, commitErr.Error(), http.StatusInternalServerError)
 		return
 	}
 	authService.Producer.CreateMessageAuth(authService.Rabbitmq.Channel, createdUser)
