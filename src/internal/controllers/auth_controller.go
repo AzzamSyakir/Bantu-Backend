@@ -29,6 +29,7 @@ func (authController *AuthController) Register(writer http.ResponseWriter, reade
 		http.Error(writer, "Invalid request body", http.StatusBadRequest)
 		return
 	}
+
 	authController.AuthService.RegisterService(request)
 	responseData := <-authController.ResponseChannel
 	response.NewResponse(writer, &responseData)
@@ -43,16 +44,35 @@ func (authController *AuthController) Login(writer http.ResponseWriter, reader *
 		return
 	}
 
-	service, err := authController.AuthService.LoginService(request)
-	if err != nil {
-		log.Println(err)
-		http.Error(writer, "Internal Server Error", http.StatusInternalServerError)
+	authController.AuthService.LoginService(request)
+	responseData := <-authController.ResponseChannel
+	response.NewResponse(writer, &responseData)
+}
+
+func (authController *AuthController) AdminRegister(writer http.ResponseWriter, reader *http.Request) {
+	request := &request.AdminRegisterRequest{}
+	decodeErr := json.NewDecoder(reader.Body).Decode(request)
+	if decodeErr != nil {
+		log.Println(decodeErr)
+		http.Error(writer, "Invalid request body", http.StatusBadRequest)
 		return
 	}
 
-	response.NewResponse(writer, &response.Response[any]{
-		Code:    http.StatusOK,
-		Message: "Login success",
-		Data:    service,
-	})
+	authController.AuthService.AdminRegisterService(request)
+	responseData := <-authController.ResponseChannel
+	response.NewResponse(writer, &responseData)
+}
+
+func (authController *AuthController) AdminLogin(writer http.ResponseWriter, reader *http.Request) {
+	request := &request.AdminLoginRequest{}
+	decodeErr := json.NewDecoder(reader.Body).Decode(request)
+	if decodeErr != nil {
+		log.Println(decodeErr)
+		http.Error(writer, "Invalid request body", http.StatusBadRequest)
+		return
+	}
+
+	authController.AuthService.AdminLoginService(request)
+	responseData := <-authController.ResponseChannel
+	response.NewResponse(writer, &responseData)
 }

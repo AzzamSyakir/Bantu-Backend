@@ -64,10 +64,8 @@ func (controller ControllerConsumer) ConsumeAuthQueue(rabbitMQConfig *configs.Ra
 		return
 	}
 	for msg := range msgs {
-		fmt.Println("tes consume auth queue")
 		var payload RabbitMQPayload
 		// Parse JSON message
-		fmt.Println("payload", payload)
 		err := json.Unmarshal(msg.Body, &payload)
 		if err != nil {
 			log.Fatal("Failed to unmarshal message: ", err)
@@ -83,6 +81,22 @@ func (controller ControllerConsumer) ConsumeAuthQueue(rabbitMQConfig *configs.Ra
 			log.Fatal("Failed to unmarshal data: ", err)
 			continue
 		}
+
+		if responseData.Role == "" {
+			var responseData entity.AdminEntity
+			err = json.Unmarshal(dataBytes, &responseData)
+			if err != nil {
+				log.Fatal("Failed to unmarshal data: ", err)
+				continue
+			}
+			controller.AuthController.ResponseChannel <- response.Response[interface{}]{
+				Code:    200,
+				Message: "Success",
+				Data:    responseData,
+			}
+			return
+		}
+
 		controller.AuthController.ResponseChannel <- response.Response[interface{}]{
 			Code:    200,
 			Message: "Success",

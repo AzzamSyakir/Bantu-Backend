@@ -59,7 +59,7 @@ func NewContainer() *Container {
 	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
 	consumerInit.ConsumerEntrypointStart()
 	router := mux.NewRouter()
-	middleware := middlewares.NewMiddleware()
+	middleware := middlewares.NewMiddleware(authService)
 	routeConfig := routes.NewRoute(
 		router,
 		middleware,

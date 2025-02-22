@@ -3,6 +3,7 @@ package middlewares
 import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/rabbitmq/producer"
+	"bantu-backend/src/internal/services"
 	"net/http"
 	"strings"
 
@@ -14,9 +15,10 @@ type Middleware struct {
 	Rabbitmq *configs.RabbitMqConfig
 	Producer *producer.ServicesProducer
 	Cors     *cors.Cors
+	Auth     *services.AuthService
 }
 
-func NewMiddleware() *Middleware {
+func NewMiddleware(auth *services.AuthService) *Middleware {
 	return &Middleware{
 		Cors: cors.New(cors.Options{
 			AllowedOrigins:   []string{"*"},
@@ -24,6 +26,7 @@ func NewMiddleware() *Middleware {
 			AllowedHeaders:   []string{"*"},
 			Debug:            false,
 		}),
+		Auth: auth,
 	}
 }
 func (middleware *Middleware) RateLimitMiddleware(next http.Handler) http.Handler {
@@ -53,9 +56,24 @@ func (m *Middleware) InputValidationMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Authorization") == "" {
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
+		}
+		if m.Auth.ValidateToken(r.Header.Get("Authorization")) == false {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (m *Middleware) ApplyMiddleware(next http.Handler) http.Handler {
 	handler := m.Cors.Handler(next)
 	handler = m.RateLimitMiddleware(handler)
 	handler = m.InputValidationMiddleware(handler)
+	handler = m.ValidateAuthorizationHeader(handler)
 	return handler
 }
