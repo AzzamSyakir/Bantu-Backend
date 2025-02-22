@@ -73,19 +73,23 @@ func (middleware *Middleware) InputValidationMiddleware(next http.Handler) http.
 	})
 }
 
-// func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		if r.Header.Get("Authorization") == "" {
-// 			http.Error(w, "Bad Request", http.StatusBadRequest)
-// 			return
-// 		}
-// 		if m.ValidateToken(r.Header.Get("Authorization")) == false {
-// 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-// 			return
-// 		}
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
+func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "login") || strings.Contains(r.URL.Path, "register") {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if r.Header.Get("Authorization") == "" {
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
+		}
+		if m.ValidateToken(r.Header.Get("Authorization")) == false {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
 
 func (m *Middleware) ValidateToken(tokenString string) bool {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
@@ -111,7 +115,7 @@ func (middleware *Middleware) ApplyMiddleware(next http.Handler) http.Handler {
 	handler := middleware.CorsMiddleware(next)
 	handler = middleware.RateLimitMiddleware(handler)
 	handler = middleware.InputValidationMiddleware(handler)
-	// handler = middleware.ValidateAuthorizationHeader(handler)
+	handler = middleware.ValidateAuthorizationHeader(handler)
 	fmt.Println("middleware applied")
 	return handler
 }

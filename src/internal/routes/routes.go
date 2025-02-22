@@ -46,19 +46,16 @@ func (r *Route) Register() {
 	r.Router.HandleFunc("/admin/register", r.AuthController.AdminRegister).Methods("POST")
 	r.Router.HandleFunc("/admin/login", r.AuthController.AdminLogin).Methods("POST")
 
-	protected := r.Router.PathPrefix("").Subrouter()
-	protected.Use(r.Middleware.ApplyMiddleware)
+	r.Router.HandleFunc("/jobs", r.JobController.GetJobs).Methods("GET")
+	r.Router.HandleFunc("/jobs", r.JobController.CreateJob).Methods("POST")
+	r.Router.HandleFunc("/jobs/{id}", r.JobController.GetJobByID).Methods("GET")
+	r.Router.HandleFunc("/jobs/{id}", r.JobController.UpdateJob).Methods("PUT")
+	r.Router.HandleFunc("/jobs/{id}", r.JobController.DeleteJob).Methods("DELETE")
 
-	protected.HandleFunc("/jobs", r.JobController.GetJobs).Methods("GET")
-	protected.HandleFunc("/jobs", r.JobController.CreateJob).Methods("POST")
-	protected.HandleFunc("/jobs/{id}", r.JobController.GetJobByID).Methods("GET")
-	protected.HandleFunc("/jobs/{id}", r.JobController.UpdateJob).Methods("PUT")
-	protected.HandleFunc("/jobs/{id}", r.JobController.DeleteJob).Methods("DELETE")
-
-	protected.HandleFunc("/jobs/{id}/proposals", r.ProposalController.GetProposals).Methods("GET")
-	protected.HandleFunc("/jobs/{id}/proposals", r.ProposalController.CreateProposal).Methods("POST")
-	protected.HandleFunc("/jobs/{id}/proposals/{proposalId}", r.ProposalController.UpdateProposal).Methods("PUT")
-	protected.HandleFunc("/jobs/{id}/proposals/{proposalId}/accept", r.ProposalController.AcceptProposal).Methods("PUT")
+	r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.GetProposals).Methods("GET")
+	r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.CreateProposal).Methods("POST")
+	r.Router.HandleFunc("/jobs/{id}/proposals/{proposalId}", r.ProposalController.UpdateProposal).Methods("PUT")
+	r.Router.HandleFunc("/jobs/{id}/proposals/{proposalId}/accept", r.ProposalController.AcceptProposal).Methods("PUT")
 
 	// r.Router.HandleFunc("/jobs/{id}/payment", r.PaymentController.ProcessPayment).Methods("POST")
 }
