@@ -10,14 +10,14 @@ DROP TABLE IF EXISTS admins;
 DROP TABLE IF EXISTS users;
 
 CREATE TABLE provinces (
-  id uuid NOT NULL PRIMARY KEY,
+  id SERIAL NOT NULL PRIMARY KEY,
   province_name VARCHAR(50),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE regencies (
-  id uuid NOT NULL PRIMARY KEY,
-  province_id uuid NOT NULL,
+  id SERIAL NOT NULL PRIMARY KEY,
+  province_id INT NOT NULL,
   regency_name VARCHAR(50),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_regencies_province FOREIGN KEY (province_id) REFERENCES provinces (id) ON DELETE CASCADE
@@ -49,8 +49,8 @@ CREATE TABLE jobs (
   description TEXT,
   category VARCHAR(100),
   price DECIMAL(10, 2),
-  regency_id uuid NOT NULL,
-  province_id uuid NOT NULL,
+  regency_id INT NOT NULL,
+  province_id INT NOT NULL,
   posted_by uuid NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

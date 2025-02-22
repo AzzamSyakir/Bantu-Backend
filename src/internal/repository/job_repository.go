@@ -87,14 +87,22 @@ func (jobRepository *JobRepository) CreateJobRepository(job *entity.JobEntity) (
 	if err != nil {
 		return nil, err
 	}
-	return job, nil
+
+	id := job.ID.String()
+	result, err := jobRepository.GetJobByIDRepository(id)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
 }
 
 func (jobRepository *JobRepository) GetJobByIDRepository(id string) (*entity.JobEntity, error) {
 	query := `
-	SELECT id, title, description, category, price, regency_id, province_id, posted_by, created_at, updated_at 
-	FROM jobs 
-	WHERE id = $1;
+	SELECT j.*, r.*, p.*
+	FROM jobs j
+	JOIN provinces p ON j.province_id = p.id
+	JOIN regencies r ON j.regency_id = r.id
+	WHERE j.id = $1;
 	`
 	var job entity.JobEntity
 	err := jobRepository.Db.DB.Connection.QueryRow(
@@ -111,6 +119,13 @@ func (jobRepository *JobRepository) GetJobByIDRepository(id string) (*entity.Job
 		&job.PostedBy,
 		&job.CreatedAt,
 		&job.UpdatedAt,
+		&job.Regency.ID,
+		&job.Regency.ProvinceID,
+		&job.Regency.RegencyName,
+		&job.Regency.CreatedAt,
+		&job.Province.ID,
+		&job.Province.ProvinceName,
+		&job.Province.CreatedAt,
 	)
 	if err != nil {
 		return nil, err
