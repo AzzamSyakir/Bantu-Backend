@@ -83,7 +83,7 @@ func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler
 			http.Error(w, "Bad Request", http.StatusBadRequest)
 			return
 		}
-		if m.ValidateToken(r.Header.Get("Authorization")) == false {
+		if !m.ValidateToken(r.Header.Get("Authorization")) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
