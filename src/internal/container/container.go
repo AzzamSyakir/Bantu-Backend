@@ -3,7 +3,7 @@ package container
 import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/controllers"
-	"bantu-backend/src/internal/middlewares"
+	"bantu-backend/src/internal/middleware"
 	"bantu-backend/src/internal/models/response"
 	"bantu-backend/src/internal/rabbitmq/consumer"
 	"bantu-backend/src/internal/rabbitmq/producer"
@@ -22,7 +22,7 @@ type Container struct {
 	Controller *ControllerContainer
 	RabbitMq   *configs.RabbitMqConfig
 	Route      *routes.Route
-	Middleware *middlewares.Middleware
+	Middleware *middleware.Middleware
 }
 
 func NewContainer() *Container {
@@ -61,7 +61,7 @@ func NewContainer() *Container {
 	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
 	consumerInit.ConsumerEntrypointStart()
 	router := mux.NewRouter()
-	middleware := middlewares.NewMiddleware()
+	middleware := middleware.NewMiddleware()
 	routeConfig := routes.NewRoute(
 		router,
 		middleware,
