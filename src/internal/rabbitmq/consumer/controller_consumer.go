@@ -45,7 +45,7 @@ func NewControllerConsumer(
 	}
 }
 
-func (controller ControllerConsumer) ConsumeSuccess(rabbitMQConfig *configs.RabbitMqConfig) {
+func (consumerController ControllerConsumer) ConsumeSuccess(rabbitMQConfig *configs.RabbitMqConfig) {
 	for _, q := range rabbitMQConfig.Queue {
 		consumerTag := strings.Replace(q.Name, "Queue", "Consumer", 1)
 		if consumerTag == "ErrorConsumer" {
@@ -71,7 +71,7 @@ func (controller ControllerConsumer) ConsumeSuccess(rabbitMQConfig *configs.Rabb
 					log.Printf("Failed to unmarshal message from queue %s: %v", queue, err)
 					continue
 				}
-				controller.ResponseChannel.ResponseSuccess <- response.Response[interface{}]{
+				consumerController.ResponseChannel.ResponseSuccess <- response.Response[interface{}]{
 					Code:    200,
 					Message: "Success",
 					Data:    payload.Data,
@@ -80,8 +80,8 @@ func (controller ControllerConsumer) ConsumeSuccess(rabbitMQConfig *configs.Rabb
 		}(q.Name, msgs)
 	}
 }
-func (controller ControllerConsumer) ConsumeError(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := controller.Env.Queues[6]
+func (consumerController ControllerConsumer) ConsumeError(rabbitMQConfig *configs.RabbitMqConfig) {
+	expectedQueueName := consumerController.Env.Queues[6]
 	var queueName string
 	for _, name := range rabbitMQConfig.Queue {
 		if expectedQueueName == name.Name {
@@ -110,14 +110,10 @@ func (controller ControllerConsumer) ConsumeError(rabbitMQConfig *configs.Rabbit
 			log.Fatal("Failed to unmarshal message: ", err)
 		}
 		// Handle response
-		responseData, ok := payload.Data.(string)
-		if !ok {
-			log.Fatal("payload type not as it expected")
-		}
-		controller.JobController.ResponseChannel.ResponseError <- response.Response[interface{}]{
+		consumerController.ResponseChannel.ResponseError <- response.Response[interface{}]{
 			Code:    payload.StatusCode,
 			Message: "Error",
-			Data:    responseData,
+			Data:    payload.Data,
 		}
 	}
 

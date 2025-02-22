@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"bantu-backend/src/configs"
+	"bantu-backend/src/internal/models/response"
 	"bantu-backend/src/internal/rabbitmq/producer"
 	"fmt"
 	"net/http"
@@ -16,8 +17,11 @@ type Middleware struct {
 	Producer *producer.ServicesProducer
 }
 
-func NewMiddleware() *Middleware {
-	return &Middleware{}
+func NewMiddleware(rabbimtMq *configs.RabbitMqConfig, producer *producer.ServicesProducer) *Middleware {
+	return &Middleware{
+		Rabbitmq: rabbimtMq,
+		Producer: producer,
+	}
 }
 
 func (*Middleware) CorsMiddleware(next http.Handler) http.Handler {
@@ -32,26 +36,37 @@ func (*Middleware) CorsMiddleware(next http.Handler) http.Handler {
 
 func (middleware *Middleware) RateLimitMiddleware(next http.Handler) http.Handler {
 	limiter := rate.NewLimiter(100, 100)
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if !limiter.Allow() {
 			errorMessage := "The API is at capacity, try again later."
-			http.Error(w, errorMessage, http.StatusTooManyRequests)
+			result := &response.Response[interface{}]{
+				Code:    http.StatusTooManyRequests,
+				Message: "Error",
+				Data:    errorMessage,
+			}
+			response.NewResponse(writer, result)
 			return
 		} else {
-			next.ServeHTTP(w, r)
+			next.ServeHTTP(writer, request)
 		}
 	})
 }
 
-func (*Middleware) InputValidationMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == http.MethodPost || r.Method == http.MethodPut {
-			if !strings.Contains(r.Header.Get("Content-Type"), "application/json") {
-				http.Error(w, "Content-Type must be application/json", http.StatusUnsupportedMediaType)
+func (middleware *Middleware) InputValidationMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if request.Method == http.MethodPost || request.Method == http.MethodPut {
+			if !strings.Contains(request.Header.Get("Content-Type"), "application/json") {
+				errorMessage := "Content-Type must be application/json"
+				result := &response.Response[interface{}]{
+					Code:    http.StatusUnsupportedMediaType,
+					Message: "Error",
+					Data:    errorMessage,
+				}
+				response.NewResponse(writer, result)
 				return
 			}
 		}
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(writer, request)
 	})
 }
 

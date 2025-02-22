@@ -1,9 +1,13 @@
 package middleware_test
 
 import (
+	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/middleware"
+	"bantu-backend/src/internal/rabbitmq/producer"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 )
@@ -14,9 +18,17 @@ type TestMiddleware struct {
 }
 
 func NewTestMiddleware(test *testing.T) *TestMiddleware {
+	dir, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error getting current directory:", err)
+	}
+	fmt.Println("Current directory:", dir)
+	envConfig := configs.NewEnvConfig()
+	servicesProducer := producer.CreateNewServicesProducer(envConfig.RabbitMq)
+	rabbitmqConfig := configs.NewRabbitMqConfig(envConfig)
 	return &TestMiddleware{
 		Test:       test,
-		Middleware: middleware.NewMiddleware(),
+		Middleware: middleware.NewMiddleware(rabbitmqConfig, servicesProducer),
 	}
 }
 func (testMiddleware *TestMiddleware) Start() {
@@ -112,10 +124,10 @@ func (testMiddleware *TestMiddleware) TestRateLimitMiddleware(t *testing.T) {
 		handler.ServeHTTP(rec, req)
 		if rec.Code == http.StatusOK {
 			allowedCount++
-			t.Logf("Request %d allowed (status %d)", i+1, rec.Code)
+			t.Logf("Request %d allowed (status code %d)", i+1, rec.Code)
 		} else if rec.Code == http.StatusTooManyRequests {
 			rejectedCount++
-			t.Logf("Request %d rejected (status %d)", i+1, rec.Code)
+			t.Logf("Request %d rejected (status code %d)", i+1, rec.Code)
 		}
 	}
 
