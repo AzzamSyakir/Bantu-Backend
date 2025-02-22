@@ -6,25 +6,31 @@ import (
 	"bantu-backend/src/internal/services"
 	"encoding/json"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type ProposalController struct {
 	ProposalService *services.ProposalService
-	ResponseChannel chan response.Response[any]
+	ResponseChannel *response.ResponseChannel
 }
 
-func NewProposalController(jobService *services.ProposalService) *ProposalController {
+func NewProposalController(jobService *services.ProposalService, responseChannel *response.ResponseChannel) *ProposalController {
 	return &ProposalController{
 		ProposalService: jobService,
-		ResponseChannel: make(chan response.Response[any], 1),
+		ResponseChannel: responseChannel,
 	}
 }
 
 func (proposalController *ProposalController) GetProposals(writer http.ResponseWriter, reader *http.Request) {
 
 	proposalController.ProposalService.GetProposalsService(reader)
-	responseData := <-proposalController.ResponseChannel
-	response.NewResponse(writer, &responseData)
+	select {
+	case responseError := <-proposalController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-proposalController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
 }
 
 func (proposalController *ProposalController) CreateProposal(writer http.ResponseWriter, reader *http.Request) {
@@ -37,8 +43,12 @@ func (proposalController *ProposalController) CreateProposal(writer http.Respons
 	}
 
 	proposalController.ProposalService.CreateProposalService(&request)
-	responseData := <-proposalController.ResponseChannel
-	response.NewResponse(writer, &responseData)
+	select {
+	case responseError := <-proposalController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-proposalController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
 }
 
 func (proposalController *ProposalController) UpdateProposal(writer http.ResponseWriter, reader *http.Request) {
@@ -51,6 +61,22 @@ func (proposalController *ProposalController) UpdateProposal(writer http.Respons
 	}
 
 	proposalController.ProposalService.UpdateProposalService(reader, &request)
-	responseData := <-proposalController.ResponseChannel
-	response.NewResponse(writer, &responseData)
+	select {
+	case responseError := <-proposalController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-proposalController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
+}
+
+func (proposalController *ProposalController) AcceptProposal(writer http.ResponseWriter, reader *http.Request) {
+	vars := mux.Vars(reader)
+	id, _ := vars["proposalId"]
+	proposalController.ProposalService.AcceptProposalService(id)
+	select {
+	case responseError := <-proposalController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-proposalController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
 }

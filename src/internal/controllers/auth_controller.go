@@ -11,13 +11,13 @@ import (
 
 type AuthController struct {
 	AuthService     *services.AuthService
-	ResponseChannel chan response.Response[any]
+	ResponseChannel *response.ResponseChannel
 }
 
-func NewAuthController(authService *services.AuthService) *AuthController {
+func NewAuthController(authService *services.AuthService, responseChannel *response.ResponseChannel) *AuthController {
 	return &AuthController{
 		AuthService:     authService,
-		ResponseChannel: make(chan response.Response[any], 1),
+		ResponseChannel: responseChannel,
 	}
 }
 
@@ -31,8 +31,12 @@ func (authController *AuthController) Register(writer http.ResponseWriter, reade
 	}
 
 	authController.AuthService.RegisterService(request)
-	responseData := <-authController.ResponseChannel
-	response.NewResponse(writer, &responseData)
+	select {
+	case responseError := <-authController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-authController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
 }
 
 func (authController *AuthController) Login(writer http.ResponseWriter, reader *http.Request) {
@@ -45,8 +49,12 @@ func (authController *AuthController) Login(writer http.ResponseWriter, reader *
 	}
 
 	authController.AuthService.LoginService(request)
-	responseData := <-authController.ResponseChannel
-	response.NewResponse(writer, &responseData)
+	select {
+	case responseError := <-authController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-authController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
 }
 
 func (authController *AuthController) AdminRegister(writer http.ResponseWriter, reader *http.Request) {
@@ -59,8 +67,12 @@ func (authController *AuthController) AdminRegister(writer http.ResponseWriter, 
 	}
 
 	authController.AuthService.AdminRegisterService(request)
-	responseData := <-authController.ResponseChannel
-	response.NewResponse(writer, &responseData)
+	select {
+	case responseError := <-authController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-authController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
 }
 
 func (authController *AuthController) AdminLogin(writer http.ResponseWriter, reader *http.Request) {
@@ -73,6 +85,10 @@ func (authController *AuthController) AdminLogin(writer http.ResponseWriter, rea
 	}
 
 	authController.AuthService.AdminLoginService(request)
-	responseData := <-authController.ResponseChannel
-	response.NewResponse(writer, &responseData)
+	select {
+	case responseError := <-authController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-authController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
 }

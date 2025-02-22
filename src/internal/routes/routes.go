@@ -2,13 +2,13 @@ package routes
 
 import (
 	"bantu-backend/src/internal/controllers"
-	"bantu-backend/src/internal/middlewares"
+	"bantu-backend/src/internal/middleware"
 
 	"github.com/gorilla/mux"
 )
 
 type Route struct {
-	Middleware            *middlewares.Middleware
+	Middleware            *middleware.Middleware
 	Router                *mux.Router
 	AuthController        *controllers.AuthController
 	ChatController        *controllers.ChatController
@@ -20,7 +20,7 @@ type Route struct {
 
 func NewRoute(
 	router *mux.Router,
-	middleware *middlewares.Middleware,
+	middleware *middleware.Middleware,
 	authController *controllers.AuthController,
 	chatController *controllers.ChatController,
 	jobController *controllers.JobController,
@@ -58,5 +58,7 @@ func (r *Route) Register() {
 	protected.HandleFunc("/jobs/{id}/proposals", r.ProposalController.GetProposals).Methods("GET")
 	protected.HandleFunc("/jobs/{id}/proposals", r.ProposalController.CreateProposal).Methods("POST")
 	protected.HandleFunc("/jobs/{id}/proposals/{proposalId}", r.ProposalController.UpdateProposal).Methods("PUT")
+	protected.HandleFunc("/jobs/{id}/proposals/{proposalId}/accept", r.ProposalController.AcceptProposal).Methods("PUT")
+
 	// r.Router.HandleFunc("/jobs/{id}/payment", r.PaymentController.ProcessPayment).Methods("POST")
 }

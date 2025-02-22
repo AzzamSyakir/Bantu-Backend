@@ -3,15 +3,17 @@ package consumer
 import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/controllers"
-	"bantu-backend/src/internal/entity"
 	"bantu-backend/src/internal/models/response"
 	"encoding/json"
 	"fmt"
 	"log"
 	"strings"
+
+	"github.com/streadway/amqp"
 )
 
 type ControllerConsumer struct {
+	ResponseChannel       *response.ResponseChannel
 	Env                   *configs.RabbitMqEnv
 	AuthController        *controllers.AuthController
 	ChatController        *controllers.ChatController
@@ -29,6 +31,7 @@ func NewControllerConsumer(
 	proposalController *controllers.ProposalController,
 	transactionController *controllers.TransactionController,
 	userController *controllers.UserController,
+	responseChannel *response.ResponseChannel,
 ) *ControllerConsumer {
 	return &ControllerConsumer{
 		Env:                   env,
@@ -38,479 +41,47 @@ func NewControllerConsumer(
 		ProposalController:    proposalController,
 		TransactionController: transactionController,
 		UserController:        userController,
+		ResponseChannel:       responseChannel,
 	}
 }
 
-func (controller ControllerConsumer) ConsumeAuthQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := controller.Env.Queues[0]
-	var queueName string
-	for _, name := range rabbitMQConfig.Queue {
-		if expectedQueueName == name.Name {
-			queueName = name.Name
-			break
-		}
-	}
-	msgs, err := rabbitMQConfig.Channel.Consume(
-		queueName,
-		"AuthConsumer",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		fmt.Printf("Queue '%s' not available. Retrying in 5 seconds... Error: %v\n", queueName, err)
-		return
-	}
-	for msg := range msgs {
-		var payload RabbitMQPayload
-		// Parse JSON message
-		err := json.Unmarshal(msg.Body, &payload)
-		if err != nil {
-			log.Fatal("Failed to unmarshal message: ", err)
-		}
-		dataBytes, err := json.Marshal(payload.Data)
-		if err != nil {
-			log.Fatal("Failed to marshal response data: ", err)
+func (consumerController ControllerConsumer) ConsumeSuccess(rabbitMQConfig *configs.RabbitMqConfig) {
+	for _, q := range rabbitMQConfig.Queue {
+		consumerTag := strings.Replace(q.Name, "Queue", "Consumer", 1)
+		if consumerTag == "ErrorConsumer" {
 			continue
 		}
-		var responseData entity.UserEntity
-		err = json.Unmarshal(dataBytes, &responseData)
+		msgs, err := rabbitMQConfig.Channel.Consume(
+			q.Name,
+			consumerTag,
+			true,
+			false,
+			false,
+			false,
+			nil,
+		)
 		if err != nil {
-			log.Fatal("Failed to unmarshal data: ", err)
+			fmt.Printf("Queue '%s' is not available. Retrying in 5 seconds... Error: %v\n", q.Name, err)
 			continue
 		}
-
-		if responseData.Role == "" {
-			var responseData entity.AdminEntity
-			err = json.Unmarshal(dataBytes, &responseData)
-			if err != nil {
-				log.Fatal("Failed to unmarshal data: ", err)
-				continue
-			}
-			controller.AuthController.ResponseChannel <- response.Response[interface{}]{
-				Code:    200,
-				Message: "Success",
-				Data:    responseData,
-			}
-			return
-		}
-
-		controller.AuthController.ResponseChannel <- response.Response[interface{}]{
-			Code:    200,
-			Message: "Success",
-			Data:    responseData,
-		}
-	}
-}
-func (controller ControllerConsumer) ConsumeChatQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := controller.Env.Queues[1]
-	var queueName string
-	for _, name := range rabbitMQConfig.Queue {
-		if expectedQueueName == name.Name {
-			queueName = name.Name
-			break
-		}
-	}
-	msgs, err := rabbitMQConfig.Channel.Consume(
-		queueName,
-		"ChatConsumer",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		fmt.Printf("Queue '%s' not available. Retrying in 5 seconds... Error: %v\n", queueName, err)
-		return
-	}
-
-	for msg := range msgs {
-		var payload RabbitMQPayload
-		// Parse JSON message
-		err := json.Unmarshal(msg.Body, &payload)
-		if err != nil {
-			log.Fatal("Failed to unmarshal message: ", err)
-		}
-
-		// Handle error response
-		if strings.HasPrefix(payload.Message, "responseError") {
-			errorMessage := strings.TrimPrefix(payload.Message, "responseError")
-			errorMessage = strings.TrimSpace(errorMessage)
-
-			if errorMessage == "" {
-				controller.ChatController.ResponseChannel <- response.Response[interface{}]{
-					Code:    500,
-					Message: "Error message is empty after 'responseError'",
+		go func(queue string, msgs <-chan amqp.Delivery) {
+			for msg := range msgs {
+				var payload RabbitMQPayload
+				if err := json.Unmarshal(msg.Body, &payload); err != nil {
+					log.Printf("Failed to unmarshal message from queue %s: %v", queue, err)
+					continue
+				}
+				consumerController.ResponseChannel.ResponseSuccess <- response.Response[interface{}]{
+					Code:    200,
+					Message: "Success",
 					Data:    payload.Data,
 				}
-				continue
 			}
-
-			controller.ChatController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: fmt.Sprintf("Error occurred: %s", errorMessage),
-				Data:    payload.Data,
-			}
-			continue
-		}
-
-		// Handle success response
-		if payload.Message == "responseSuccess" {
-			dataBytes, err := json.Marshal(payload.Data)
-			if err != nil {
-				fmt.Printf("Failed to marshal response data: %v\n", err)
-				continue
-			}
-
-			var responseData *entity.ChatEntity
-			err = json.Unmarshal(dataBytes, &responseData)
-			if err != nil {
-				fmt.Printf("Failed to unmarshal data: %v\n", err)
-				continue
-			}
-			controller.ChatController.ResponseChannel <- response.Response[interface{}]{
-				Code:    200,
-				Message: "Success",
-				Data:    responseData,
-			}
-		} else {
-			controller.ChatController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: "Unknown message type",
-				Data:    nil,
-			}
-		}
+		}(q.Name, msgs)
 	}
 }
-func (controller ControllerConsumer) ConsumeJobQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := controller.Env.Queues[2]
-	var queueName string
-	for _, name := range rabbitMQConfig.Queue {
-		if expectedQueueName == name.Name {
-			queueName = name.Name
-			break
-		}
-	}
-	msgs, err := rabbitMQConfig.Channel.Consume(
-		queueName,
-		"JobConsumer",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		fmt.Printf("Queue '%s' not available. Retrying in 5 seconds... Error: %v\n", queueName, err)
-		return
-	}
-
-	for msg := range msgs {
-		var payload RabbitMQPayload
-		// Parse JSON message
-		err := json.Unmarshal(msg.Body, &payload)
-		if err != nil {
-			log.Fatal("Failed to unmarshal message: ", err)
-		}
-
-		// Handle error response
-		if strings.HasPrefix(payload.Message, "responseError") {
-			errorMessage := strings.TrimPrefix(payload.Message, "responseError")
-			errorMessage = strings.TrimSpace(errorMessage)
-
-			if errorMessage == "" {
-				controller.JobController.ResponseChannel <- response.Response[interface{}]{
-					Code:    500,
-					Message: "Error message is empty after 'responseError'",
-					Data:    payload.Data,
-				}
-				continue
-			}
-
-			controller.JobController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: fmt.Sprintf("Error occurred: %s", errorMessage),
-				Data:    payload.Data,
-			}
-			continue
-		}
-
-		// Handle success response
-		if payload.Message == "responseSuccess" {
-			dataBytes, err := json.Marshal(payload.Data)
-			if err != nil {
-				fmt.Printf("Failed to marshal response data: %v\n", err)
-				continue
-			}
-
-			var responseData *entity.JobEntity
-			err = json.Unmarshal(dataBytes, &responseData)
-			if err != nil {
-				fmt.Printf("Failed to unmarshal data: %v\n", err)
-				continue
-			}
-			controller.JobController.ResponseChannel <- response.Response[interface{}]{
-				Code:    200,
-				Message: "Success",
-				Data:    responseData,
-			}
-		} else {
-			controller.JobController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: "Unknown message type",
-				Data:    nil,
-			}
-		}
-	}
-}
-func (controller ControllerConsumer) ConsumeProposalQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := controller.Env.Queues[3]
-	var queueName string
-	for _, name := range rabbitMQConfig.Queue {
-		if expectedQueueName == name.Name {
-			queueName = name.Name
-			break
-		}
-	}
-	msgs, err := rabbitMQConfig.Channel.Consume(
-		queueName,
-		"ProposalConsumer",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		fmt.Printf("Queue '%s' not available. Retrying in 5 seconds... Error: %v\n", queueName, err)
-		return
-	}
-
-	for msg := range msgs {
-		var payload RabbitMQPayload
-		// Parse JSON message
-		err := json.Unmarshal(msg.Body, &payload)
-		if err != nil {
-			log.Fatal("Failed to unmarshal message: ", err)
-		}
-
-		// Handle error response
-		if strings.HasPrefix(payload.Message, "responseError") {
-			errorMessage := strings.TrimPrefix(payload.Message, "responseError")
-			errorMessage = strings.TrimSpace(errorMessage)
-
-			if errorMessage == "" {
-				controller.ProposalController.ResponseChannel <- response.Response[interface{}]{
-					Code:    500,
-					Message: "Error message is empty after 'responseError'",
-					Data:    payload.Data,
-				}
-				continue
-			}
-
-			controller.ProposalController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: fmt.Sprintf("Error occurred: %s", errorMessage),
-				Data:    payload.Data,
-			}
-			continue
-		}
-
-		// Handle success response
-		if payload.Message == "responseSuccess" {
-			dataBytes, err := json.Marshal(payload.Data)
-			if err != nil {
-				fmt.Printf("Failed to marshal response data: %v\n", err)
-				continue
-			}
-
-			var responseData *entity.ProposalEntity
-			err = json.Unmarshal(dataBytes, &responseData)
-			if err != nil {
-				fmt.Printf("Failed to unmarshal data: %v\n", err)
-				continue
-			}
-			controller.ProposalController.ResponseChannel <- response.Response[interface{}]{
-				Code:    200,
-				Message: "Success",
-				Data:    responseData,
-			}
-		} else {
-			controller.ProposalController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: "Unknown message type",
-				Data:    nil,
-			}
-		}
-	}
-}
-func (controller ControllerConsumer) ConsumeTransactionQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := controller.Env.Queues[4]
-	var queueName string
-	for _, name := range rabbitMQConfig.Queue {
-		if expectedQueueName == name.Name {
-			queueName = name.Name
-			break
-		}
-	}
-	msgs, err := rabbitMQConfig.Channel.Consume(
-		queueName,
-		"TransactionConsumer",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		fmt.Printf("Queue '%s' not available. Retrying in 5 seconds... Error: %v\n", queueName, err)
-		return
-	}
-
-	for msg := range msgs {
-		var payload RabbitMQPayload
-		// Parse JSON message
-		err := json.Unmarshal(msg.Body, &payload)
-		if err != nil {
-			log.Fatal("Failed to unmarshal message: ", err)
-		}
-
-		// Handle error response
-		if strings.HasPrefix(payload.Message, "responseError") {
-			errorMessage := strings.TrimPrefix(payload.Message, "responseError")
-			errorMessage = strings.TrimSpace(errorMessage)
-
-			if errorMessage == "" {
-				controller.TransactionController.ResponseChannel <- response.Response[interface{}]{
-					Code:    500,
-					Message: "Error message is empty after 'responseError'",
-					Data:    payload.Data,
-				}
-				continue
-			}
-
-			controller.TransactionController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: fmt.Sprintf("Error occurred: %s", errorMessage),
-				Data:    payload.Data,
-			}
-			continue
-		}
-
-		// Handle success response
-		if payload.Message == "responseSuccess" {
-			dataBytes, err := json.Marshal(payload.Data)
-			if err != nil {
-				fmt.Printf("Failed to marshal response data: %v\n", err)
-				continue
-			}
-
-			var responseData *entity.TransactionEntity
-			err = json.Unmarshal(dataBytes, &responseData)
-			if err != nil {
-				fmt.Printf("Failed to unmarshal data: %v\n", err)
-				continue
-			}
-			controller.TransactionController.ResponseChannel <- response.Response[interface{}]{
-				Code:    200,
-				Message: "Success",
-				Data:    responseData,
-			}
-		} else {
-			controller.TransactionController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: "Unknown message type",
-				Data:    nil,
-			}
-		}
-	}
-}
-func (controller ControllerConsumer) ConsumeUserQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := controller.Env.Queues[5]
-	var queueName string
-	for _, name := range rabbitMQConfig.Queue {
-		if expectedQueueName == name.Name {
-			queueName = name.Name
-			break
-		}
-	}
-	msgs, err := rabbitMQConfig.Channel.Consume(
-		queueName,
-		"UserConsumer",
-		true,
-		false,
-		false,
-		false,
-		nil,
-	)
-	if err != nil {
-		fmt.Printf("Queue '%s' not available. Retrying in 5 seconds... Error: %v\n", queueName, err)
-		return
-	}
-
-	for msg := range msgs {
-		var payload RabbitMQPayload
-		// Parse JSON message
-		err := json.Unmarshal(msg.Body, &payload)
-		if err != nil {
-			log.Fatal("Failed to unmarshal message: ", err)
-		}
-
-		// Handle error response
-		if strings.HasPrefix(payload.Message, "responseError") {
-			errorMessage := strings.TrimPrefix(payload.Message, "responseError")
-			errorMessage = strings.TrimSpace(errorMessage)
-
-			if errorMessage == "" {
-				controller.UserController.ResponseChannel <- response.Response[interface{}]{
-					Code:    500,
-					Message: "Error message is empty after 'responseError'",
-					Data:    payload.Data,
-				}
-				continue
-			}
-
-			controller.UserController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: fmt.Sprintf("Error occurred: %s", errorMessage),
-				Data:    payload.Data,
-			}
-			continue
-		}
-
-		// Handle success response
-		if payload.Message == "responseSuccess" {
-			dataBytes, err := json.Marshal(payload.Data)
-			if err != nil {
-				fmt.Printf("Failed to marshal response data: %v\n", err)
-				continue
-			}
-
-			var responseData *entity.UserEntity
-			err = json.Unmarshal(dataBytes, &responseData)
-			if err != nil {
-				fmt.Printf("Failed to unmarshal data: %v\n", err)
-				continue
-			}
-			controller.UserController.ResponseChannel <- response.Response[interface{}]{
-				Code:    200,
-				Message: "Success",
-				Data:    responseData,
-			}
-		} else {
-			controller.UserController.ResponseChannel <- response.Response[interface{}]{
-				Code:    400,
-				Message: "Unknown message type",
-				Data:    nil,
-			}
-		}
-	}
-}
-func (controller ControllerConsumer) ConsumeErrorQueue(rabbitMQConfig *configs.RabbitMqConfig) {
-	expectedQueueName := controller.Env.Queues[6]
+func (consumerController ControllerConsumer) ConsumeError(rabbitMQConfig *configs.RabbitMqConfig) {
+	expectedQueueName := consumerController.Env.Queues[6]
 	var queueName string
 	for _, name := range rabbitMQConfig.Queue {
 		if expectedQueueName == name.Name {
@@ -539,14 +110,10 @@ func (controller ControllerConsumer) ConsumeErrorQueue(rabbitMQConfig *configs.R
 			log.Fatal("Failed to unmarshal message: ", err)
 		}
 		// Handle response
-		responseData, ok := payload.Data.(string)
-		if !ok {
-			log.Fatal("payload type not as it expected")
-		}
-		controller.AuthController.ResponseChannel <- response.Response[interface{}]{
+		consumerController.ResponseChannel.ResponseError <- response.Response[interface{}]{
 			Code:    payload.StatusCode,
 			Message: "Error",
-			Data:    responseData,
+			Data:    payload.Data,
 		}
 	}
 

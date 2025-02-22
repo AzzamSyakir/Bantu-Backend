@@ -7,12 +7,12 @@ import (
 
 type TransactionController struct {
 	TransactionService *services.TransactionService
-	ResponseChannel    chan response.Response[any]
+	ResponseChannel    *response.ResponseChannel
 }
 
-func NewTransactionController(jobService *services.TransactionService) *TransactionController {
+func NewTransactionController(jobService *services.TransactionService, responseChannel *response.ResponseChannel) *TransactionController {
 	return &TransactionController{
 		TransactionService: jobService,
-		ResponseChannel:    make(chan response.Response[any], 1),
+		ResponseChannel:    responseChannel,
 	}
 }

@@ -6,7 +6,6 @@ import (
 	"bantu-backend/src/internal/models/request"
 	"bantu-backend/src/internal/rabbitmq/producer"
 	"bantu-backend/src/internal/repository"
-	"fmt"
 	"net/http"
 	"regexp"
 	"time"
@@ -52,8 +51,8 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 	emailRegex := `^(?i)[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$`
 	re := regexp.MustCompile(emailRegex)
 	if !re.MatchString(request.Email) {
-		errMessage := "invalid email type"
 		begin.Rollback()
+		errMessage := "invalid email type"
 		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, errMessage, http.StatusInternalServerError)
 		return
 	}
@@ -69,7 +68,6 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 		return
 	}
 
-	currentTime := time.Now()
 	newUser := &entity.UserEntity{
 		ID:        string(uuid.NewString()),
 		Name:      request.Name,
@@ -77,8 +75,8 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 		Password:  string(hashedPassword),
 		Role:      request.Role,
 		Balance:   0.0,
-		CreatedAt: currentTime,
-		UpdatedAt: currentTime,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 
 	createdUser, createdUserErr := authService.UserRepository.RegisterUser(begin, newUser)
@@ -170,26 +168,6 @@ func (authService *AuthService) GenerateToken(email string) (string, error) {
 	}
 
 	return tokenString, nil
-}
-
-func (authService *AuthService) ValidateToken(tokenString string) bool {
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		secretKey := []byte(authService.EnvConfig.SecretKey)
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		}
-		return secretKey, nil
-	})
-
-	if err != nil {
-		return false
-	}
-
-	if !token.Valid {
-		return false
-	}
-
-	return true
 }
 
 func (authService *AuthService) AdminRegisterService(request *request.AdminRegisterRequest) {
