@@ -8,19 +8,22 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/golang-jwt/jwt"
 	"github.com/rs/cors"
 	"golang.org/x/time/rate"
 )
 
 type Middleware struct {
-	Rabbitmq *configs.RabbitMqConfig
-	Producer *producer.ServicesProducer
+	Rabbitmq  *configs.RabbitMqConfig
+	Producer  *producer.ServicesProducer
+	EnvConfig *configs.EnvConfig
 }
 
-func NewMiddleware(rabbimtMq *configs.RabbitMqConfig, producer *producer.ServicesProducer) *Middleware {
+func NewMiddleware(rabbimtMq *configs.RabbitMqConfig, producer *producer.ServicesProducer, envConfig *configs.EnvConfig) *Middleware {
 	return &Middleware{
-		Rabbitmq: rabbimtMq,
-		Producer: producer,
+		Rabbitmq:  rabbimtMq,
+		Producer:  producer,
+		EnvConfig: envConfig,
 	}
 }
 
@@ -70,10 +73,49 @@ func (middleware *Middleware) InputValidationMiddleware(next http.Handler) http.
 	})
 }
 
+func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.Contains(r.URL.Path, "login") || strings.Contains(r.URL.Path, "register") {
+			next.ServeHTTP(w, r)
+			return
+		}
+		if r.Header.Get("Authorization") == "" {
+			http.Error(w, "Bad Request", http.StatusBadRequest)
+			return
+		}
+		if !m.ValidateToken(r.Header.Get("Authorization")) {
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (m *Middleware) ValidateToken(tokenString string) bool {
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		secretKey := []byte(m.EnvConfig.SecretKey)
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return secretKey, nil
+	})
+
+	if err != nil {
+		return false
+	}
+
+	if !token.Valid {
+		return false
+	}
+
+	return true
+}
+
 func (middleware *Middleware) ApplyMiddleware(next http.Handler) http.Handler {
 	handler := middleware.CorsMiddleware(next)
 	handler = middleware.RateLimitMiddleware(handler)
 	handler = middleware.InputValidationMiddleware(handler)
+	handler = middleware.ValidateAuthorizationHeader(handler)
 	fmt.Println("middleware applied")
 	return handler
 }

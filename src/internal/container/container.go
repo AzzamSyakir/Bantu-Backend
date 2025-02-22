@@ -35,7 +35,7 @@ func NewContainer() *Container {
 	dbConfig := configs.NewDBConfig(envConfig)
 	servicesProducer := producer.CreateNewServicesProducer(envConfig.RabbitMq)
 	rabbitmqConfig := configs.NewRabbitMqConfig(envConfig)
-	middleware := middleware.NewMiddleware(rabbitmqConfig, servicesProducer)
+	middleware := middleware.NewMiddleware(rabbitmqConfig, servicesProducer, envConfig)
 
 	// setup repo
 	userRepository := repository.NewUserRepository()
