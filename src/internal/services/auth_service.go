@@ -141,7 +141,7 @@ func (authService *AuthService) LoginService(request *request.LoginRequest) {
 		return
 	}
 
-	tokenString, err := authService.GenerateToken(foundUser.Email)
+	tokenString, err := authService.GenerateToken(foundUser.ID)
 	if err != nil {
 		begin.Rollback()
 		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusInternalServerError)

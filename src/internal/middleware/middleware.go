@@ -79,11 +79,16 @@ func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler
 			next.ServeHTTP(w, r)
 			return
 		}
-		if r.Header.Get("Authorization") == "" {
-			http.Error(w, "Bad Request", http.StatusBadRequest)
-			return
+
+		cookie, err := r.Cookie("authorization")
+		if err != nil {
+			if r.Header.Get("Authorization") == "" {
+				http.Error(w, "Bad Request", http.StatusBadRequest)
+				return
+			}
 		}
-		if !m.ValidateToken(r.Header.Get("Authorization")) {
+
+		if !m.ValidateToken(r.Header.Get("Authorization")) && !m.ValidateToken(cookie.Value) {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}

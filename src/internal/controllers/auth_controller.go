@@ -1,12 +1,13 @@
 package controllers
 
 import (
+	"bantu-backend/src/internal/entity"
 	"bantu-backend/src/internal/models/request"
 	"bantu-backend/src/internal/models/response"
 	"bantu-backend/src/internal/services"
 	"encoding/json"
-	"log"
 	"net/http"
+	"time"
 )
 
 type AuthController struct {
@@ -25,7 +26,6 @@ func (authController *AuthController) Register(writer http.ResponseWriter, reade
 	request := &request.RegisterRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
-		log.Println(decodeErr)
 		http.Error(writer, "Invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -43,7 +43,6 @@ func (authController *AuthController) Login(writer http.ResponseWriter, reader *
 	request := &request.LoginRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
-		log.Println(decodeErr)
 		http.Error(writer, "Invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -53,6 +52,40 @@ func (authController *AuthController) Login(writer http.ResponseWriter, reader *
 	case responseError := <-authController.ResponseChannel.ResponseError:
 		response.NewResponse(writer, &responseError)
 	case responseSuccess := <-authController.ResponseChannel.ResponseSuccess:
+		var userEntity entity.UserEntity
+		userEntityBytes, err := json.Marshal(responseSuccess.Data)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		err = json.Unmarshal(userEntityBytes, &userEntity)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		authorizationCookie := &http.Cookie{
+			Name:     "authorization",
+			Value:    userEntity.Token,
+			Expires:  time.Now().Add(24 * time.Hour), // Berlaku 1 hari
+			HttpOnly: true,                           // Hanya bisa diakses melalui HTTP, bukan JS
+			Secure:   true,                           // Hanya dikirim melalui HTTPS
+			Path:     "/",                            // Berlaku di seluruh domain
+			Domain:   "localhost",                    // Berlaku di domain localhost
+		}
+
+		entityIDCookie := &http.Cookie{
+			Name:     "entity_id",
+			Value:    userEntity.ID,
+			Expires:  time.Now().Add(24 * time.Hour), // Berlaku 1 hari
+			HttpOnly: true,                           // Hanya bisa diakses melalui HTTP, bukan JS
+			Secure:   true,                           // Hanya dikirim melalui HTTPS
+			Path:     "/",                            // Berlaku di seluruh domain
+			Domain:   "localhost",                    // Berlaku di domain localhost
+		}
+
+		http.SetCookie(writer, authorizationCookie)
+		http.SetCookie(writer, entityIDCookie)
+
 		response.NewResponse(writer, &responseSuccess)
 	}
 }
@@ -61,7 +94,6 @@ func (authController *AuthController) AdminRegister(writer http.ResponseWriter, 
 	request := &request.AdminRegisterRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
-		log.Println(decodeErr)
 		http.Error(writer, "Invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -79,7 +111,6 @@ func (authController *AuthController) AdminLogin(writer http.ResponseWriter, rea
 	request := &request.AdminLoginRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
-		log.Println(decodeErr)
 		http.Error(writer, "Invalid request body", http.StatusBadRequest)
 		return
 	}
@@ -89,6 +120,40 @@ func (authController *AuthController) AdminLogin(writer http.ResponseWriter, rea
 	case responseError := <-authController.ResponseChannel.ResponseError:
 		response.NewResponse(writer, &responseError)
 	case responseSuccess := <-authController.ResponseChannel.ResponseSuccess:
+		var adminEntity entity.AdminEntity
+		adminEntityBytes, err := json.Marshal(responseSuccess.Data)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		err = json.Unmarshal(adminEntityBytes, &adminEntity)
+		if err != nil {
+			panic(err.Error())
+		}
+
+		authorizationCookie := &http.Cookie{
+			Name:     "authorization",
+			Value:    adminEntity.Token,
+			Expires:  time.Now().Add(24 * time.Hour), // Berlaku 1 hari
+			HttpOnly: true,                           // Hanya bisa diakses melalui HTTP, bukan JS
+			Secure:   true,                           // Hanya dikirim melalui HTTPS
+			Path:     "/",                            // Berlaku di seluruh domain
+			Domain:   "localhost",                    // Berlaku di domain localhost
+		}
+
+		entityIDCookie := &http.Cookie{
+			Name:     "entity_id",
+			Value:    adminEntity.ID,
+			Expires:  time.Now().Add(24 * time.Hour), // Berlaku 1 hari
+			HttpOnly: true,                           // Hanya bisa diakses melalui HTTP, bukan JS
+			Secure:   true,                           // Hanya dikirim melalui HTTPS
+			Path:     "/",                            // Berlaku di seluruh domain
+			Domain:   "localhost",                    // Berlaku di domain localhost
+		}
+
+		http.SetCookie(writer, authorizationCookie)
+		http.SetCookie(writer, entityIDCookie)
+
 		response.NewResponse(writer, &responseSuccess)
 	}
 }
