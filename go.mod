@@ -14,4 +14,4 @@ require (
 	golang.org/x/time v0.10.0
 )
 
-require github.com/golang-jwt/jwt v3.2.2+incompatible // indirect
+require github.com/golang-jwt/jwt v3.2.2+incompatible

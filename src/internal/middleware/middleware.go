@@ -74,20 +74,32 @@ func (middleware *Middleware) InputValidationMiddleware(next http.Handler) http.
 }
 
 func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if strings.Contains(r.URL.Path, "login") || strings.Contains(r.URL.Path, "register") {
-			next.ServeHTTP(w, r)
+	return http.HandlerFunc(func(writer http.ResponseWriter, reader *http.Request) {
+		if strings.Contains(reader.URL.Path, "login") || strings.Contains(reader.URL.Path, "register") {
+			next.ServeHTTP(writer, reader)
 			return
 		}
-		if r.Header.Get("Authorization") == "" {
-			http.Error(w, "Bad Request", http.StatusBadRequest)
+		if reader.Header.Get("Authorization") == "" {
+			errorMessage := "Unauthorized access: please log in to obtain valid credentials."
+			result := &response.Response[interface{}]{
+				Code:    http.StatusUnauthorized,
+				Message: "Unauthorized",
+				Data:    errorMessage,
+			}
+			response.NewResponse(writer, result)
 			return
 		}
-		if !m.ValidateToken(r.Header.Get("Authorization")) {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		if !m.ValidateToken(reader.Header.Get("Authorization")) {
+			errorMessage := "Invalid token: please provide a valid token or log in again."
+			result := &response.Response[interface{}]{
+				Code:    http.StatusUnauthorized,
+				Message: "Unauthorized",
+				Data:    errorMessage,
+			}
+			response.NewResponse(writer, result)
 			return
 		}
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(writer, reader)
 	})
 }
 
