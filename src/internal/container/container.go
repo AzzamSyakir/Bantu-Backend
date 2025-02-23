@@ -1,6 +1,7 @@
 package container
 
 import (
+	"bantu-backend/src/cache"
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/controllers"
 	"bantu-backend/src/internal/middleware"
@@ -21,6 +22,7 @@ type Container struct {
 	Db         *configs.DatabaseConfig
 	Controller *ControllerContainer
 	RabbitMq   *configs.RabbitMqConfig
+	Redis      *configs.RedisConfig
 	Route      *routes.Route
 	Middleware *middleware.Middleware
 }
@@ -35,6 +37,7 @@ func NewContainer() *Container {
 	dbConfig := configs.NewDBConfig(envConfig)
 	servicesProducer := producer.CreateNewServicesProducer(envConfig.RabbitMq)
 	rabbitmqConfig := configs.NewRabbitMqConfig(envConfig)
+	redisConfig := configs.NewRedisConfig(envConfig)
 	middleware := middleware.NewMiddleware(rabbitmqConfig, servicesProducer, envConfig)
 
 	// setup repo
@@ -42,11 +45,15 @@ func NewContainer() *Container {
 	chatRepository := repository.NewChatRepository()
 	jobRepository := repository.NewJobRepository(dbConfig)
 	transactionRepository := repository.NewTransactionRepository()
+
+	// setup cache
+	jobCache := cache.NewJobCache(redisConfig)
+
 	// setup services
 	authService := services.NewAuthService(userRepository, servicesProducer, envConfig, dbConfig, rabbitmqConfig)
 	userService := services.NewUserService(userRepository, servicesProducer)
 	chatService := services.NewChatService(chatRepository, servicesProducer)
-	jobService := services.NewJobService(jobRepository, servicesProducer, rabbitmqConfig)
+	jobService := services.NewJobService(jobRepository, servicesProducer, rabbitmqConfig, jobCache)
 	proposalService := services.NewProposalService(jobRepository, servicesProducer, rabbitmqConfig)
 	transactionService := services.NewTransactionService(transactionRepository, servicesProducer)
 	// setup controller
@@ -78,6 +85,7 @@ func NewContainer() *Container {
 		Db:         dbConfig,
 		Controller: controllerContainer,
 		RabbitMq:   rabbitmqConfig,
+		Redis:      redisConfig,
 		Route:      routeConfig,
 		Middleware: middleware,
 	}
