@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"bantu-backend/src/internal/entity"
+	"bantu-backend/src/internal/models/request"
 	"bantu-backend/src/internal/models/response"
 	"bantu-backend/src/internal/services"
 	"encoding/json"
@@ -35,7 +35,7 @@ func (proposalController *ProposalController) GetProposals(writer http.ResponseW
 
 func (proposalController *ProposalController) CreateProposal(writer http.ResponseWriter, reader *http.Request) {
 
-	request := entity.ProposalEntity{}
+	request := request.ProposalRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
 
 	if decodeErr != nil {
@@ -53,7 +53,7 @@ func (proposalController *ProposalController) CreateProposal(writer http.Respons
 
 func (proposalController *ProposalController) UpdateProposal(writer http.ResponseWriter, reader *http.Request) {
 
-	request := entity.ProposalEntity{}
+	request := request.ProposalRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
 
 	if decodeErr != nil {

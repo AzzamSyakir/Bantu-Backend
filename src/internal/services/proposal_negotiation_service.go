@@ -3,10 +3,12 @@ package services
 import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/entity"
+	"bantu-backend/src/internal/models/request"
 	"bantu-backend/src/internal/rabbitmq/producer"
 	"bantu-backend/src/internal/repository"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -35,18 +37,32 @@ func (proposalService *ProposalService) GetProposalsService(reader *http.Request
 	return proposalService.Producer.CreateMessageProposal(proposalService.RabbitMq.Channel, "responseSuccess", job)
 }
 
-func (proposalService *ProposalService) CreateProposalService(request *entity.ProposalEntity) error {
-	proposal, err := proposalService.JobRepository.CreateProposalRepository(request)
+func (proposalService *ProposalService) CreateProposalService(request *request.ProposalRequest) error {
+	proposal := &entity.ProposalEntity{
+		ID:            uuid.New(),
+		JobID:         request.JobID,
+		FreelancerID:  request.FreelancerID,
+		ProposalText:  request.ProposalText,
+		ProposedPrice: request.ProposedPrice,
+		Status:        request.Status,
+	}
+	proposal, err := proposalService.JobRepository.CreateProposalRepository(proposal)
 	if err != nil {
 		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, "create proposal is failed", http.StatusBadRequest)
 	}
 	return proposalService.Producer.CreateMessageProposal(proposalService.RabbitMq.Channel, "responseSuccess", proposal)
 }
 
-func (proposalService *ProposalService) UpdateProposalService(reader *http.Request, request *entity.ProposalEntity) error {
+func (proposalService *ProposalService) UpdateProposalService(reader *http.Request, request *request.ProposalRequest) error {
 	vars := mux.Vars(reader)
 	id, _ := vars["proposalId"]
-	proposal, err := proposalService.JobRepository.UpdateProposalRepository(id, request)
+	proposal := &entity.ProposalEntity{
+		JobID:         request.JobID,
+		FreelancerID:  request.FreelancerID,
+		ProposalText:  request.ProposalText,
+		ProposedPrice: request.ProposedPrice,
+	}
+	proposal, err := proposalService.JobRepository.UpdateProposalRepository(id, proposal)
 	if err != nil {
 		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, "update proposal is failed", http.StatusBadRequest)
 	}
@@ -56,7 +72,7 @@ func (proposalService *ProposalService) UpdateProposalService(reader *http.Reque
 func (proposalService *ProposalService) AcceptProposalService(id string) error {
 	_, err := proposalService.JobRepository.AcceptProposalRepository(id)
 	if err != nil {
-		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, "accept proposal not found", http.StatusBadRequest)
+		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
 	}
 	return proposalService.Producer.CreateMessageJob(proposalService.RabbitMq.Channel, "responseSuccess", "success accept proposal")
 }

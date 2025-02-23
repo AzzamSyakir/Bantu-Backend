@@ -1,7 +1,9 @@
 package configs
 
 import (
+	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -25,11 +27,17 @@ type RabbitMqEnv struct {
 	Password string
 	Queues   []string
 }
+type RedisEnv struct {
+	Addr     string
+	Password string
+	DB       int
+}
 
 type EnvConfig struct {
 	App       *AppEnv
 	Db        *PostgresEnv
 	RabbitMq  *RabbitMqEnv
+	Redis     *RedisEnv
 	SecretKey string
 }
 
@@ -37,9 +45,11 @@ func NewEnvConfig() *EnvConfig {
 	queueNamesEnv := os.Getenv("RABBITMQ_QUEUE_NAMES")
 	queues := strings.Split(queueNamesEnv, ",")
 	cleanedQueues := make([]string, len(queues))
+	addressRedis := fmt.Sprintf("%s:%s", os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PORT"))
 	for i, q := range queues {
 		cleanedQueues[i] = strings.TrimSpace(q)
 	}
+	redisDB, _ := strconv.Atoi(os.Getenv("REDIS_DB"))
 	envConfig := &EnvConfig{
 		App: &AppEnv{
 			AppHost: os.Getenv("GATEWAY_APP_HOST"),
@@ -59,6 +69,11 @@ func NewEnvConfig() *EnvConfig {
 			User:     os.Getenv("RABBITMQ_USER"),
 			Password: os.Getenv("RABBITMQ_PASSWORD"),
 			Queues:   cleanedQueues,
+		},
+		Redis: &RedisEnv{
+			Addr:     addressRedis,
+			Password: os.Getenv("REDIS_PASSWORD"),
+			DB:       redisDB,
 		},
 		SecretKey: os.Getenv("SECRET_KEY"),
 	}
