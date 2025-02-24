@@ -57,7 +57,7 @@ func (transactionController *TransactionController) TopUpBalance(writer http.Res
 func (transactionController *TransactionController) PayFreelancer(writer http.ResponseWriter, reader *http.Request) {
 	vars := mux.Vars(reader)
 	proposalId := vars["proposalId"]
-	request := &request.TopupRequest{}
+	request := &request.PayFreelancerRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
 		responseError := response.Response[any]{

@@ -16,6 +16,9 @@ type TopupRequest struct {
 	Amount        int    `json:"amount"`
 	PaymentMethod string `json:"payment_method"`
 }
+type PayFreelancerRequest struct {
+	PaymentMethod string `json:"payment_method"`
+}
 type AdminRegisterRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

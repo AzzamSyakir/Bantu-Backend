@@ -90,19 +90,13 @@ func (transactionService *TransactionService) TopUpBalance(request *request.Topu
 	go transactionService.CheckInvoice(userId, createInvoice, newTransaction)
 	transactionService.Producer.CreateMessageTransaction(transactionService.Rabbitmq.Channel, newTransaction)
 }
-func (transactionService *TransactionService) PayFreelancer(request *request.TopupRequest, proposalId string, userId string) {
+func (transactionService *TransactionService) PayFreelancer(request *request.PayFreelancerRequest, proposalId string, userId string) {
 	begin, beginErr := transactionService.Database.DB.Connection.Begin()
 	if beginErr != nil {
 		transactionService.Producer.CreateMessageError(transactionService.Rabbitmq.Channel, beginErr.Error(), http.StatusInternalServerError)
 	}
 	if proposalId == "" {
 		errMessage := "proposal id must be provided"
-		begin.Rollback()
-		transactionService.Producer.CreateMessageError(transactionService.Rabbitmq.Channel, errMessage, http.StatusInternalServerError)
-		return
-	}
-	if request.Amount == 0 {
-		errMessage := "topup amount must be provided"
 		begin.Rollback()
 		transactionService.Producer.CreateMessageError(transactionService.Rabbitmq.Channel, errMessage, http.StatusInternalServerError)
 		return
@@ -132,8 +126,8 @@ func (transactionService *TransactionService) PayFreelancer(request *request.Top
 		return
 	}
 
-	senderBalance := foundSender.Balance - float64(request.Amount)
-	receiverBalance := foundReceiver.Balance + float64(request.Amount)
+	senderBalance := foundSender.Balance - float64(*foundProposal.ProposedPrice)
+	receiverBalance := foundReceiver.Balance + float64(*foundProposal.ProposedPrice)
 	updateSenderBalanceErr := transactionService.UserRepository.UpdateUserBalance(begin, userId, int(senderBalance))
 	if updateSenderBalanceErr != nil {
 		begin.Rollback()
@@ -151,7 +145,7 @@ func (transactionService *TransactionService) PayFreelancer(request *request.Top
 		SenderId:        null.NewString(userId, true),
 		ReceiverId:      null.NewString(foundProposal.FreelancerID, true),
 		TransactionType: "pay_freelancer",
-		Amount:          request.Amount,
+		Amount:          int(*foundProposal.ProposedPrice),
 		PaymentMethod:   request.PaymentMethod,
 		CreatedAt:       time.Now(),
 		UpdatedAt:       time.Now(),
