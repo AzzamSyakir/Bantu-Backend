@@ -169,26 +169,28 @@ func (m *Middleware) ValidateToken(tokenString string) (*request.Authorization, 
 }
 
 func (m *Middleware) ValidateRole(endpoint string, method string, role string) bool {
+	anyId := `[a-zA-Z0-9_-]+`
+
 	rolePermissions := map[string]map[string][]string{
 		`^/api/jobs$`: {
 			"GET":  {"freelancer", "company", "client"},
 			"POST": {"company", "client"},
 		},
-		`^/api/jobs/\d+$`: {
+		fmt.Sprintf(`^/api/jobs/%s$`, anyId): {
 			"GET":    {"freelancer"},
 			"PUT":    {"company", "client"},
 			"DELETE": {"company", "client"},
 		},
-		`^/api/jobs/\d+/proposals$`: {
+		fmt.Sprintf(`^/api/jobs/%s/proposals$`, anyId): {
 			"GET": {"company", "client"},
 		},
-		`^/api/jobs/\d+/proposal$`: {
+		fmt.Sprintf(`^/api/jobs/%s/proposal$`, anyId): {
 			"POST": {"freelancer"},
 		},
-		`^/api/jobs/\d+/proposal/\d+$`: {
+		fmt.Sprintf(`^/api/jobs/%s/proposal/%s$`, anyId, anyId): {
 			"PUT": {"freelancer"},
 		},
-		`^/api/jobs/\d+/proposal/\d+/accept$`: {
+		fmt.Sprintf(`^/api/jobs/%s/proposal/%s/accept$`, anyId, anyId): {
 			"PUT": {"company", "client"},
 		},
 	}
