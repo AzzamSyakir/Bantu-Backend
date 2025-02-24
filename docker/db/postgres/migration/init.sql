@@ -74,7 +74,7 @@ CREATE TABLE proposals (
 
 CREATE TABLE transactions (
   id uuid PRIMARY KEY,
-  job_id uuid NOT NULL,
+  job_id uuid,
   proposal_id uuid NOT NULL,
   sender_id uuid NOT NULL,
   receiver_id uuid NOT NULL,

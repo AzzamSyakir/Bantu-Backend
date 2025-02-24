@@ -13,9 +13,12 @@ func NewTransactionRepository() *TransactionRepository {
 }
 func (transactionRepository *TransactionRepository) CreateTransaction(begin *sql.Tx, transactionEntitiy *entity.TransactionEntity) (result *entity.TransactionEntity, err error) {
 	_, queryErr := begin.Query(
-		`INSERT INTO transactions (id, job_id, proposal__id, sender_id, receiver_id transaction_type, amount, payment_method, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9);`,
+		`INSERT INTO transactions (id, job_id, proposal_id, sender_id, receiver_id, transaction_type, amount, payment_method, status, created_at, updated_at) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);`,
 		transactionEntitiy.ID,
 		transactionEntitiy.JobId,
+		transactionEntitiy.ProposalId,
+		transactionEntitiy.SenderId,
+		transactionEntitiy.ReceiverId,
 		transactionEntitiy.TransactionType,
 		transactionEntitiy.Amount,
 		transactionEntitiy.PaymentMethod,

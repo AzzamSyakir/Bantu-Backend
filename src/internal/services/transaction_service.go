@@ -167,7 +167,6 @@ func (transactionService *TransactionService) PayFreelancer(request *request.Top
 	}
 	transactionService.Producer.CreateMessageTransaction(transactionService.Rabbitmq.Channel, newTransaction)
 }
-
 func (transactionService *TransactionService) CreateInvoiceRequest(userId string, amount float64) *invoice.Invoice {
 	createInvoiceRequest := *invoice.NewCreateInvoiceRequest(userId, amount)
 	xenditClient := xendit.NewClient(transactionService.Env.XenditSecretKey)
