@@ -71,7 +71,7 @@ func (proposalController *ProposalController) UpdateProposal(writer http.Respons
 
 func (proposalController *ProposalController) AcceptProposal(writer http.ResponseWriter, reader *http.Request) {
 	vars := mux.Vars(reader)
-	id, _ := vars["proposalId"]
+	id := vars["proposalId"]
 	proposalController.ProposalService.AcceptProposalService(id)
 	select {
 	case responseError := <-proposalController.ResponseChannel.ResponseError:

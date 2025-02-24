@@ -81,7 +81,7 @@ func (jobService *JobService) CreateJobService(request *request.JobRequest) erro
 
 func (jobService *JobService) GetJobByIDService(reader *http.Request) error {
 	vars := mux.Vars(reader)
-	id, _ := vars["id"]
+	id := vars["id"]
 	job, err := jobService.JobRepository.GetJobByIDRepository(id)
 	if err != nil {
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, "job not found", http.StatusBadRequest)
@@ -91,7 +91,7 @@ func (jobService *JobService) GetJobByIDService(reader *http.Request) error {
 
 func (jobService *JobService) UpdateJobService(reader *http.Request, request *request.JobRequest) error {
 	vars := mux.Vars(reader)
-	id, _ := vars["id"]
+	id := vars["id"]
 	job := &entity.JobEntity{
 		Title:       request.Title,
 		Description: request.Description,
@@ -113,7 +113,7 @@ func (jobService *JobService) UpdateJobService(reader *http.Request, request *re
 
 func (jobService *JobService) DeleteJobService(reader *http.Request) error {
 	vars := mux.Vars(reader)
-	id, _ := vars["id"]
+	id := vars["id"]
 	err := jobService.JobRepository.DeleteJobRepository(id)
 	if err != nil {
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)

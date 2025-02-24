@@ -51,8 +51,8 @@ services:
     ports:
       - ${DB_PORT}:5432
     volumes:
-      - ./db/postgres/migration:/docker-entrypoint-initdb.d
-      - ./db/postgres/data:/docker-entrypoint-initdb.d/data
+      - ./db/postgres/migration/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/postgres/data/:/docker-entrypoint-initdb.d/data/
       - app-db:/var/lib/postgresql/data
 
   swagger-ui:

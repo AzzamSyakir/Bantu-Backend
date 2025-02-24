@@ -39,22 +39,24 @@ func NewRoute(
 	}
 }
 
-func (r *Route) Register() {
-	r.Router.HandleFunc("/register", r.AuthController.Register).Methods("POST")
-	r.Router.HandleFunc("/login", r.AuthController.Login).Methods("POST")
+func (route *Route) Register() {
+	route.Router.HandleFunc("/register", route.AuthController.Register).Methods("POST")
+	route.Router.HandleFunc("/login", route.AuthController.Login).Methods("POST")
 
-	r.Router.HandleFunc("/admin/register", r.AuthController.AdminRegister).Methods("POST")
-	r.Router.HandleFunc("/admin/login", r.AuthController.AdminLogin).Methods("POST")
+	route.Router.HandleFunc("/admin/register", route.AuthController.AdminRegister).Methods("POST")
+	route.Router.HandleFunc("/admin/login", route.AuthController.AdminLogin).Methods("POST")
 
-	r.Router.HandleFunc("/jobs", r.JobController.GetJobs).Methods("GET")
-	r.Router.HandleFunc("/jobs", r.JobController.CreateJob).Methods("POST")
-	r.Router.HandleFunc("/jobs/{id}", r.JobController.GetJobByID).Methods("GET")
-	r.Router.HandleFunc("/jobs/{id}", r.JobController.UpdateJob).Methods("PUT")
-	r.Router.HandleFunc("/jobs/{id}", r.JobController.DeleteJob).Methods("DELETE")
+	route.Router.HandleFunc("/jobs", route.JobController.GetJobs).Methods("GET")
+	route.Router.HandleFunc("/jobs", route.JobController.CreateJob).Methods("POST")
+	route.Router.HandleFunc("/jobs/{id}", route.JobController.GetJobByID).Methods("GET")
+	route.Router.HandleFunc("/jobs/{id}", route.JobController.UpdateJob).Methods("PUT")
+	route.Router.HandleFunc("/jobs/{id}", route.JobController.DeleteJob).Methods("DELETE")
 
-	r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.GetProposals).Methods("GET")
-	r.Router.HandleFunc("/jobs/{id}/proposal", r.ProposalController.CreateProposal).Methods("POST")
-	r.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}", r.ProposalController.UpdateProposal).Methods("PUT")
-	r.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}/accept", r.ProposalController.AcceptProposal).Methods("PUT")
-	// r.Router.HandleFunc("/jobs/{id}/payment", r.PaymentController.ProcessPayment).Methods("POST")
+	route.Router.HandleFunc("/jobs/{id}/proposals", route.ProposalController.GetProposals).Methods("GET")
+	route.Router.HandleFunc("/jobs/{id}/proposal", route.ProposalController.CreateProposal).Methods("POST")
+	route.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}", route.ProposalController.UpdateProposal).Methods("PUT")
+	route.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}/accept", route.ProposalController.AcceptProposal).Methods("PUT")
+
+	route.Router.HandleFunc("/transaction/wallet/topup", route.TransactionController.TopUpBalance).Methods("POST")
+	route.Router.HandleFunc("/transaction/wallet/pay/{proposalId}", route.TransactionController.PayFreelancer).Methods("POST")
 }

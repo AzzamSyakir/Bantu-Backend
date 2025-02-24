@@ -26,7 +26,13 @@ func (authController *AuthController) Register(writer http.ResponseWriter, reade
 	request := &request.RegisterRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
-		http.Error(writer, "Invalid request body", http.StatusBadRequest)
+		responseError := response.Response[any]{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request body",
+			Data:    decodeErr.Error(),
+		}
+		response.NewResponse(writer, &responseError)
+
 		return
 	}
 
@@ -43,7 +49,12 @@ func (authController *AuthController) Login(writer http.ResponseWriter, reader *
 	request := &request.LoginRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
-		http.Error(writer, "Invalid request body", http.StatusBadRequest)
+		responseError := response.Response[any]{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request body",
+			Data:    decodeErr.Error(),
+		}
+		response.NewResponse(writer, &responseError)
 		return
 	}
 
@@ -66,21 +77,21 @@ func (authController *AuthController) Login(writer http.ResponseWriter, reader *
 		authorizationCookie := &http.Cookie{
 			Name:     "authorization",
 			Value:    userEntity.Token,
-			Expires:  time.Now().Add(24 * time.Hour), // Berlaku 1 hari
-			HttpOnly: true,                           // Hanya bisa diakses melalui HTTP, bukan JS
-			Secure:   true,                           // Hanya dikirim melalui HTTPS
-			Path:     "/",                            // Berlaku di seluruh domain
-			Domain:   "localhost",                    // Berlaku di domain localhost
+			Expires:  time.Now().Add(24 * time.Hour),
+			HttpOnly: true,
+			Secure:   true,
+			Path:     "/",
+			Domain:   "localhost",
 		}
 
 		entityIDCookie := &http.Cookie{
 			Name:     "entity_id",
 			Value:    userEntity.ID,
-			Expires:  time.Now().Add(24 * time.Hour), // Berlaku 1 hari
-			HttpOnly: true,                           // Hanya bisa diakses melalui HTTP, bukan JS
-			Secure:   true,                           // Hanya dikirim melalui HTTPS
-			Path:     "/",                            // Berlaku di seluruh domain
-			Domain:   "localhost",                    // Berlaku di domain localhost
+			Expires:  time.Now().Add(24 * time.Hour),
+			HttpOnly: true,
+			Secure:   true,
+			Path:     "/",
+			Domain:   "localhost",
 		}
 
 		entityRoleCookie := &http.Cookie{
@@ -105,7 +116,12 @@ func (authController *AuthController) AdminRegister(writer http.ResponseWriter, 
 	request := &request.AdminRegisterRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
-		http.Error(writer, "Invalid request body", http.StatusBadRequest)
+		responseError := response.Response[any]{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request body",
+			Data:    decodeErr.Error(),
+		}
+		response.NewResponse(writer, &responseError)
 		return
 	}
 
@@ -122,7 +138,12 @@ func (authController *AuthController) AdminLogin(writer http.ResponseWriter, rea
 	request := &request.AdminLoginRequest{}
 	decodeErr := json.NewDecoder(reader.Body).Decode(request)
 	if decodeErr != nil {
-		http.Error(writer, "Invalid request body", http.StatusBadRequest)
+		responseError := response.Response[any]{
+			Code:    http.StatusBadRequest,
+			Message: "invalid request body",
+			Data:    decodeErr.Error(),
+		}
+		response.NewResponse(writer, &responseError)
 		return
 	}
 

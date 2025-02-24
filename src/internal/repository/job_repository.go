@@ -285,3 +285,30 @@ func (jobRepository *JobRepository) AcceptProposalRepository(id string) (*entity
 	}
 	return nil, nil
 }
+func (jobRepository *JobRepository) GetProposalsById(id string) (*entity.ProposalEntity, error) {
+	query := `SELECT * FROM proposals WHERE job_id = $1;
+	`
+	rows, err := jobRepository.Db.DB.Connection.Query(query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var proposal entity.ProposalEntity
+	err = rows.Scan(
+		&proposal.ID,
+		&proposal.JobID,
+		&proposal.FreelancerID,
+		&proposal.ProposalText,
+		&proposal.ProposedPrice,
+		&proposal.Status,
+		&proposal.CreatedAt,
+		&proposal.UpdatedAt,
+	)
+	if err != nil {
+		return nil, err
+
+	}
+
+	return &proposal, nil
+}

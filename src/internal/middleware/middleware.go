@@ -106,7 +106,7 @@ func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler
 		tokenDecoded, ValidateTokenOk := m.ValidateToken(tokenString)
 		if !ValidateTokenOk {
 			errorMessage := "Invalid token: please provide a valid token or log in again."
-			result := &response.Response[interface{}]{
+			result := &response.Response[any]{
 				Code:    http.StatusUnauthorized,
 				Message: "Unauthorized",
 				Data:    errorMessage,

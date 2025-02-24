@@ -29,7 +29,7 @@ func NewProposalService(userRepository *repository.JobRepository, producer *prod
 
 func (proposalService *ProposalService) GetProposalsService(reader *http.Request) error {
 	vars := mux.Vars(reader)
-	id, _ := vars["id"]
+	id := vars["id"]
 	job, err := proposalService.JobRepository.GetProposalsRepository(id)
 	if err != nil {
 		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, "get proposal is failed", http.StatusBadRequest)
@@ -55,7 +55,7 @@ func (proposalService *ProposalService) CreateProposalService(request *request.P
 
 func (proposalService *ProposalService) UpdateProposalService(reader *http.Request, request *request.ProposalRequest) error {
 	vars := mux.Vars(reader)
-	id, _ := vars["proposalId"]
+	id := vars["proposalId"]
 	proposal := &entity.ProposalEntity{
 		JobID:         request.JobID,
 		FreelancerID:  request.FreelancerID,
