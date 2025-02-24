@@ -59,7 +59,7 @@ func (jobService *JobService) GetJobsService(writer http.ResponseWriter, reader 
 
 func (jobService *JobService) CreateJobService(request *request.JobRequest) error {
 	job := &entity.JobEntity{
-		ID:          uuid.New(),
+		ID:          uuid.NewString(),
 		Title:       request.Title,
 		Description: request.Description,
 		Category:    request.Category,

@@ -3,6 +3,7 @@ package repository
 import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/entity"
+	"database/sql"
 	"errors"
 	"fmt"
 	"net/url"
@@ -88,7 +89,7 @@ func (jobRepository *JobRepository) CreateJobRepository(job *entity.JobEntity) (
 		return nil, err
 	}
 
-	id := job.ID.String()
+	id := job.ID
 	result, err := jobRepository.GetJobByIDRepository(id)
 	if err != nil {
 		return nil, err
@@ -286,16 +287,10 @@ func (jobRepository *JobRepository) AcceptProposalRepository(id string) (*entity
 	return nil, nil
 }
 func (jobRepository *JobRepository) GetProposalsById(id string) (*entity.ProposalEntity, error) {
-	query := `SELECT * FROM proposals WHERE job_id = $1;
-	`
-	rows, err := jobRepository.Db.DB.Connection.Query(query, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
 	var proposal entity.ProposalEntity
-	err = rows.Scan(
+
+	query := "SELECT * FROM proposals WHERE id = $1"
+	err := jobRepository.Db.DB.Connection.QueryRow(query, id).Scan(
 		&proposal.ID,
 		&proposal.JobID,
 		&proposal.FreelancerID,
@@ -306,8 +301,10 @@ func (jobRepository *JobRepository) GetProposalsById(id string) (*entity.Proposa
 		&proposal.UpdatedAt,
 	)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.New("proposal not found")
+		}
 		return nil, err
-
 	}
 
 	return &proposal, nil

@@ -39,7 +39,7 @@ func (proposalService *ProposalService) GetProposalsService(reader *http.Request
 
 func (proposalService *ProposalService) CreateProposalService(request *request.ProposalRequest) error {
 	proposal := &entity.ProposalEntity{
-		ID:            uuid.New(),
+		ID:            uuid.NewString(),
 		JobID:         request.JobID,
 		FreelancerID:  request.FreelancerID,
 		ProposalText:  request.ProposalText,

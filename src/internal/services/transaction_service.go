@@ -119,22 +119,28 @@ func (transactionService *TransactionService) PayFreelancer(request *request.Top
 		transactionService.Producer.CreateMessageError(transactionService.Rabbitmq.Channel, foundProposalErr, http.StatusInternalServerError)
 		return
 	}
-	foundReceiver, foundReceiverErr := transactionService.UserRepository.GetUserById(begin, foundProposal.FreelancerID.String())
+	foundReceiver, foundReceiverErr := transactionService.UserRepository.GetUserById(begin, foundProposal.FreelancerID)
 	if foundReceiverErr != nil {
 		begin.Rollback()
 		transactionService.Producer.CreateMessageError(transactionService.Rabbitmq.Channel, foundProposalErr, http.StatusInternalServerError)
 		return
 	}
+	if foundSender.Balance < foundReceiver.Balance {
+		begin.Rollback()
+		errMsg := fmt.Sprintf("Insufficient balance: your current balance is %.2f, but the required minimum is %.2f.", foundSender.Balance, foundReceiver.Balance)
+		transactionService.Producer.CreateMessageError(transactionService.Rabbitmq.Channel, errMsg, http.StatusInternalServerError)
+		return
+	}
+
 	senderBalance := foundSender.Balance - float64(request.Amount)
 	receiverBalance := foundReceiver.Balance + float64(request.Amount)
-	// update user balance
 	updateSenderBalanceErr := transactionService.UserRepository.UpdateUserBalance(begin, userId, int(senderBalance))
 	if updateSenderBalanceErr != nil {
 		begin.Rollback()
 		transactionService.Producer.CreateMessageError(transactionService.Rabbitmq.Channel, foundProposalErr, http.StatusInternalServerError)
 		return
 	}
-	updateReceiverBalanceErr := transactionService.UserRepository.UpdateUserBalance(begin, foundProposal.FreelancerID.String(), int(receiverBalance))
+	updateReceiverBalanceErr := transactionService.UserRepository.UpdateUserBalance(begin, foundProposal.FreelancerID, int(receiverBalance))
 	if updateReceiverBalanceErr != nil {
 		begin.Rollback()
 		transactionService.Producer.CreateMessageError(transactionService.Rabbitmq.Channel, foundProposalErr, http.StatusInternalServerError)
@@ -143,7 +149,7 @@ func (transactionService *TransactionService) PayFreelancer(request *request.Top
 	newTransaction := &entity.TransactionEntity{
 		ID:              string(uuid.NewString()),
 		SenderId:        null.NewString(userId, true),
-		ReceiverId:      null.NewString(foundProposal.FreelancerID.String(), true),
+		ReceiverId:      null.NewString(foundProposal.FreelancerID, true),
 		TransactionType: "pay_freelancer",
 		Amount:          request.Amount,
 		PaymentMethod:   request.PaymentMethod,
@@ -151,7 +157,7 @@ func (transactionService *TransactionService) PayFreelancer(request *request.Top
 		UpdatedAt:       time.Now(),
 	}
 	if newTransaction.Status == "" {
-		newTransaction.Status = "pending"
+		newTransaction.Status = "completed"
 	}
 	_, createdTransactionErr := transactionService.TransactionRepository.CreateTransaction(begin, newTransaction)
 	if createdTransactionErr != nil {
