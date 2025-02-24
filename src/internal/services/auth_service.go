@@ -141,7 +141,7 @@ func (authService *AuthService) LoginService(request *request.LoginRequest) {
 		return
 	}
 
-	tokenString, err := authService.GenerateToken(foundUser.ID)
+	tokenString, err := authService.GenerateToken(foundUser.ID, foundUser.Role)
 	if err != nil {
 		begin.Rollback()
 		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusInternalServerError)
@@ -153,11 +153,12 @@ func (authService *AuthService) LoginService(request *request.LoginRequest) {
 	return
 }
 
-func (authService *AuthService) GenerateToken(email string) (string, error) {
+func (authService *AuthService) GenerateToken(id string, role string) (string, error) {
 	jwtSecret := []byte(authService.EnvConfig.SecretKey)
 	claims := jwt.MapClaims{
-		"em":  email,
-		"exp": time.Now().Add(time.Hour * 1).Unix(),
+		"rl":  role,
+		"id":  id,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -271,7 +272,7 @@ func (authService *AuthService) AdminLoginService(request *request.AdminLoginReq
 		return
 	}
 
-	tokenString, err := authService.GenerateToken(foundAdmin.Email)
+	tokenString, err := authService.GenerateToken(foundAdmin.ID, "admin")
 	if err != nil {
 		begin.Rollback()
 		authService.Producer.CreateMessageError(authService.Rabbitmq.Channel, err.Error(), http.StatusInternalServerError)

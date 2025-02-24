@@ -4,6 +4,12 @@ import (
 	"github.com/google/uuid"
 )
 
+type Authorization struct {
+	Id  string  `json:"id"`
+	Rl  string  `json:"rl"`
+	Exp float64 `json:"exp"`
+}
+
 type RegisterRequest struct {
 	Name     string `json:"name"`
 	Email    string `json:"email"`
