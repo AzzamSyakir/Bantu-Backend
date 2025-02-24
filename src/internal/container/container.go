@@ -55,7 +55,7 @@ func NewContainer() *Container {
 	chatService := services.NewChatService(chatRepository, servicesProducer)
 	jobService := services.NewJobService(jobRepository, servicesProducer, rabbitmqConfig, jobCache)
 	proposalService := services.NewProposalService(jobRepository, servicesProducer, rabbitmqConfig)
-	transactionService := services.NewTransactionService(transactionRepository, servicesProducer)
+	transactionService := services.NewTransactionService(transactionRepository, userRepository, servicesProducer, dbConfig, rabbitmqConfig, envConfig)
 	// setup controller
 	responseChannel := response.NewResponseChannel()
 	authController := controllers.NewAuthController(authService, responseChannel)

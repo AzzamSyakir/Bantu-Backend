@@ -94,7 +94,7 @@ func (authService *AuthService) RegisterService(request *request.RegisterRequest
 	}
 
 	authService.Producer.CreateMessageAuth(authService.Rabbitmq.Channel, createdUser)
-	return
+
 }
 
 func (authService *AuthService) LoginService(request *request.LoginRequest) {
@@ -150,7 +150,6 @@ func (authService *AuthService) LoginService(request *request.LoginRequest) {
 
 	foundUser.Token = tokenString
 	authService.Producer.CreateMessageAuth(authService.Rabbitmq.Channel, foundUser)
-	return
 }
 
 func (authService *AuthService) GenerateToken(email string) (string, error) {
@@ -224,7 +223,7 @@ func (authService *AuthService) AdminRegisterService(request *request.AdminRegis
 	}
 
 	authService.Producer.CreateMessageAuth(authService.Rabbitmq.Channel, createdAdmin)
-	return
+
 }
 
 func (authService *AuthService) AdminLoginService(request *request.AdminLoginRequest) {
@@ -280,5 +279,5 @@ func (authService *AuthService) AdminLoginService(request *request.AdminLoginReq
 
 	foundAdmin.Token = tokenString
 	authService.Producer.CreateMessageAuth(authService.Rabbitmq.Channel, foundAdmin)
-	return
+
 }

@@ -10,7 +10,10 @@ type RegisterRequest struct {
 	Password string `json:"password"`
 	Role     string `json:"role"`
 }
-
+type TopupRequest struct {
+	Amount        int    `json:"amount"`
+	PaymentMethod string `json:"payment_method"`
+}
 type AdminRegisterRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`

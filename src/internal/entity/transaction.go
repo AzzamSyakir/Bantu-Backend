@@ -1,14 +1,20 @@
 package entity
 
-import "time"
+import (
+	"time"
+
+	"github.com/guregu/null"
+)
 
 type TransactionEntity struct {
-	ID           int64     `db:"id" json:"id"`
-	JobID        int64     `db:"job_id" json:"job_id"`
-	FreelancerID int64     `db:"freelancer_id" json:"freelancer_id"`
-	CompanyID    int64     `db:"company_id" json:"company_id"`
-	Amount       float64   `db:"amount" json:"amount"`
-	Status       string    `db:"status" json:"status"`
-	CreatedAt    time.Time `db:"created_at" json:"created_at"`
-	UpdatedAt    time.Time `db:"updated_at" json:"updated_at"`
+	ID              string      `db:"id" json:"id"`
+	UserId          string      `db:"user_id" json:"user_id"`
+	JobId           null.String `db:"job_id" json:"job_id"`
+	TransactionType string      `db:"transaction_type" json:"transaction_type"`
+	Amount          int         `db:"amount" json:"amount"`
+	PaymentMethod   string      `db:"payment_method" json:"payment_method"`
+	Status          string      `db:"status" json:"status"`
+	CreatedAt       time.Time   `db:"created_at" json:"created_at"`
+	UpdatedAt       time.Time   `db:"updated_at" json:"updated_at"`
+	InvoiceUrl      string      `json:"invoice_url"`
 }

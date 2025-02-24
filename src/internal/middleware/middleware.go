@@ -84,7 +84,7 @@ func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler
 		if err != nil {
 			if reader.Header.Get("Authorization") == "" {
 				errorMessage := "Unauthorized access: please log in to obtain valid credentials."
-				result := &response.Response[interface{}]{
+				result := &response.Response[any]{
 					Code:    http.StatusUnauthorized,
 					Message: "Unauthorized",
 					Data:    errorMessage,
@@ -96,7 +96,7 @@ func (m *Middleware) ValidateAuthorizationHeader(next http.Handler) http.Handler
 
 		if !m.ValidateToken(reader.Header.Get("Authorization")) && !m.ValidateToken(cookie.Value) {
 			errorMessage := "Invalid token: please provide a valid token or log in again."
-			result := &response.Response[interface{}]{
+			result := &response.Response[any]{
 				Code:    http.StatusUnauthorized,
 				Message: "Unauthorized",
 				Data:    errorMessage,

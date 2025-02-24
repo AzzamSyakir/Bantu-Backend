@@ -3,6 +3,7 @@ package repository
 import (
 	"bantu-backend/src/internal/entity"
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/guregu/null"
@@ -84,4 +85,33 @@ func (userRepository *UserRepository) LoginUser(begin *sql.Tx, email string) (re
 	result = foundUsers[0]
 	err = nil
 	return result, err
+}
+
+func (userRepository *UserRepository) UpdateUserBalance(begin *sql.Tx, userId string, amount int) error {
+	var rows *sql.Rows
+	var queryErr error
+	rows, queryErr = begin.Query(
+		`SELECT id, name, email, password, balance, role, created_at, updated_at FROM "users" WHERE id=$1 LIMIT 1;`,
+		userId,
+	)
+
+	if queryErr != nil {
+		panic(queryErr)
+	}
+	defer rows.Close()
+
+	foundUsers := DeserializeUserRows(rows)
+	if len(foundUsers) == 0 {
+		return nil
+	}
+	foundUser := foundUsers[0]
+	foundUser.Balance = float64(amount)
+	foundUser.UpdatedAt = time.Now()
+	query := `UPDATE users SET balance = $1, updated_at = $2 WHERE id = $3`
+	_, err := begin.Exec(query, foundUser.Balance, foundUser.UpdatedAt, foundUser.ID)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("update user balance aman")
+	return nil
 }
