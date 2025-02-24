@@ -58,4 +58,5 @@ func (route *Route) Register() {
 	route.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}/accept", route.ProposalController.AcceptProposal).Methods("PUT")
 
 	route.Router.HandleFunc("/transaction/wallet/topup", route.TransactionController.TopUpBalance).Methods("POST")
+	route.Router.HandleFunc("/transaction/wallet/pay/{proposalId}", route.TransactionController.PayFreelancer).Methods("POST")
 }

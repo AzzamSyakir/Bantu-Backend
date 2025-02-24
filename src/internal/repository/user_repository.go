@@ -115,3 +115,24 @@ func (userRepository *UserRepository) UpdateUserBalance(begin *sql.Tx, userId st
 	fmt.Println("update user balance aman")
 	return nil
 }
+
+func (userRepository *UserRepository) GetUserById(begin *sql.Tx, userId string) (*entity.UserEntity, error) {
+	var rows *sql.Rows
+	var queryErr error
+	rows, queryErr = begin.Query(
+		`SELECT * FROM "users" WHERE id=$1 LIMIT 1;`,
+		userId,
+	)
+
+	if queryErr != nil {
+		panic(queryErr)
+	}
+	defer rows.Close()
+
+	foundUsers := DeserializeUserRows(rows)
+	if len(foundUsers) == 0 {
+		return nil, nil
+	}
+	foundUser := foundUsers[0]
+	return foundUser, nil
+}
