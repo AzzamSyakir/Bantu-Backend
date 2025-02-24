@@ -94,8 +94,19 @@ func (authController *AuthController) Login(writer http.ResponseWriter, reader *
 			Domain:   "localhost",
 		}
 
+		entityRoleCookie := &http.Cookie{
+			Name:     "entity_role",
+			Value:    userEntity.Role,
+			Expires:  time.Now().Add(24 * time.Hour), // Berlaku 1 hari
+			HttpOnly: true,                           // Hanya bisa diakses melalui HTTP, bukan JS
+			Secure:   true,                           // Hanya dikirim melalui HTTPS
+			Path:     "/",                            // Berlaku di seluruh domain
+			Domain:   "localhost",                    // Berlaku di domain localhost
+		}
+
 		http.SetCookie(writer, authorizationCookie)
 		http.SetCookie(writer, entityIDCookie)
+		http.SetCookie(writer, entityRoleCookie)
 
 		response.NewResponse(writer, &responseSuccess)
 	}
@@ -172,8 +183,19 @@ func (authController *AuthController) AdminLogin(writer http.ResponseWriter, rea
 			Domain:   "localhost",                    // Berlaku di domain localhost
 		}
 
+		entityRoleCookie := &http.Cookie{
+			Name:     "entity_role",
+			Value:    "admin",
+			Expires:  time.Now().Add(24 * time.Hour), // Berlaku 1 hari
+			HttpOnly: true,                           // Hanya bisa diakses melalui HTTP, bukan JS
+			Secure:   true,                           // Hanya dikirim melalui HTTPS
+			Path:     "/",                            // Berlaku di seluruh domain
+			Domain:   "localhost",                    // Berlaku di domain localhost
+		}
+
 		http.SetCookie(writer, authorizationCookie)
 		http.SetCookie(writer, entityIDCookie)
+		http.SetCookie(writer, entityRoleCookie)
 
 		response.NewResponse(writer, &responseSuccess)
 	}
