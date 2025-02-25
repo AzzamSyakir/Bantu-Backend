@@ -53,4 +53,4 @@ jobs:
         run: docker build -f docker/dockerfile -t bukanasa/bantu-backend:latest .
 
       - name: Push Docker image to DockerHub
-        run: docker push bukanasa/Bantu-Backend:latest
+        run: docker push bukanasa/bantu-backend:latest
