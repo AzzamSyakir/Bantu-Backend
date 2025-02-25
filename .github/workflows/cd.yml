@@ -45,13 +45,13 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
+      - name: Stop and remove old Docker image & containers
+        run: |
+          docker compose --env-file ./.env -f ./docker/docker-compose.yml down --remove-orphans || true
+          docker rm -f bukanasa/bantu-backend:latest || true
+
       - name: Pull Docker Image
         run: docker pull bukanasa/bantu-backend:latest
-
-      - name: Stop and remove old Docker containers
-        run: |
-          docker compose down --remove-orphans || true
-          docker rm -f bukanasa/bantu-backend:latest || true
 
       - name: Run Docker
         run: |
