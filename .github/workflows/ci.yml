@@ -50,7 +50,7 @@ jobs:
         run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
       - name: Build the Docker image
-        run: docker build -f docker/dockerfile -t bukanasa/Bantu-Backend:latest .
+        run: docker build -f docker/dockerfile -t bukanasa/bantu-backend:latest .
 
       - name: Push Docker image to DockerHub
-        run: docker push bukanasa/Bantu-Backend:latest
+        run: docker push bukanasa/bantu-backend:latest
