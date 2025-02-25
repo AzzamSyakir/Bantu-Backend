@@ -75,12 +75,12 @@ CREATE TABLE proposals (
 CREATE TABLE transactions (
   id uuid PRIMARY KEY,
   job_id uuid,
-  proposal_id uuid NOT NULL,
-  sender_id uuid NOT NULL,
-  receiver_id uuid NOT NULL,
+  proposal_id uuid,
+  sender_id uuid,
+  receiver_id uuid,
   amount   BIGINT NOT NULL DEFAULT 0,
   transaction_type VARCHAR(20) CHECK (transaction_type IN ('top_up', 'pay_freelancer', 'withdrawal')) NOT NULL,
-  payment_method VARCHAR(20) CHECK (payment_method IN ('virtual_account', 'e_money', 'debit', 'credit', 'pay_later', 'qr', 'payment_link', 'internal_wallet')),
+  payment_method VARCHAR(20) CHECK (payment_method IN ('virtual_account', 'e_money', 'debit', 'credit', 'pay_later', 'qr', 'payment_link', 'internal_wallet', 'payout_link')),
   status VARCHAR(20) CHECK (status IN ('pending', 'completed', 'failed')) DEFAULT 'pending',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

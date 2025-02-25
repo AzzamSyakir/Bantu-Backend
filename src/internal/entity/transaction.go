@@ -18,7 +18,8 @@ type TransactionEntity struct {
 	Status          string      `db:"status" json:"status"`
 	CreatedAt       time.Time   `db:"created_at" json:"created_at"`
 	UpdatedAt       time.Time   `db:"updated_at" json:"updated_at"`
-	InvoiceUrl      string      `json:"invoice_url"`
+	InvoiceUrl      null.String `json:"invoice_url"`
+	PayoutUrl       null.String `json:"payout_url"`
 }
 type ProposalTransactionEntity struct {
 	ID            string    `db:"id" json:"id"`

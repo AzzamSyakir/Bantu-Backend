@@ -16,6 +16,11 @@ type TopupRequest struct {
 	Amount        int    `json:"amount"`
 	PaymentMethod string `json:"payment_method"`
 }
+type WithdrawRequest struct {
+	Email         string `json:"email"`
+	Amount        int    `json:"amount"`
+	PaymentMethod string `json:"payment_method"`
+}
 type PayFreelancerRequest struct {
 	PaymentMethod string `json:"payment_method"`
 }
