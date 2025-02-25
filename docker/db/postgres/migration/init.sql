@@ -92,13 +92,24 @@ CREATE TABLE escrow (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE rooms (
+  id uuid PRIMARY KEY,
+  sender_id uuid NOT NULL,
+  receiver_id uuid NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_room_sender FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
+  CONSTRAINT fk_room_receiver FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE CASCADE
+);
+
 CREATE TABLE chat (
   id uuid PRIMARY KEY,
+  room_id uuid NOT NULL,
   sender_id uuid NOT NULL,
   receiver_id uuid NOT NULL,
   message TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   read_at TIMESTAMP NULL DEFAULT NULL,
+  CONSTRAINT fk_chat_room FOREIGN KEY (room_id) REFERENCES rooms (id) ON DELETE CASCADE,
   CONSTRAINT fk_chat_sender FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
   CONSTRAINT fk_chat_receiver FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE CASCADE
 );

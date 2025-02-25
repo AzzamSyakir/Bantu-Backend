@@ -28,6 +28,7 @@ func NewRoute(
 	transactionController *controllers.TransactionController,
 ) *Route {
 	subRouter := router.PathPrefix("/api").Subrouter()
+
 	return &Route{
 		Middleware:            middleware,
 		Router:                subRouter,
@@ -56,5 +57,13 @@ func (r *Route) Register() {
 	r.Router.HandleFunc("/jobs/{id}/proposal", r.ProposalController.CreateProposal).Methods("POST")
 	r.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}", r.ProposalController.UpdateProposal).Methods("PUT")
 	r.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}/accept", r.ProposalController.AcceptProposal).Methods("PUT")
+
+	r.Router.HandleFunc("/jobs/{id}/review", r.JobController.GetReview).Methods("GET")
+	r.Router.HandleFunc("/jobs/{id}/review", r.JobController.CreateReview).Methods("POST")
+	r.Router.HandleFunc("/jobs/{id}/review/{reviewId}", r.JobController.UpdateReview).Methods("PUT")
+	r.Router.HandleFunc("/jobs/{id}/review/{reviewId}", r.JobController.DeleteReview).Methods("DELETE")
+
 	// r.Router.HandleFunc("/jobs/{id}/payment", r.PaymentController.ProcessPayment).Methods("POST")
+	r.Router.HandleFunc("/chat/history", r.ChatController.GetChats).Methods("GET")
+
 }

@@ -31,6 +31,7 @@ func NewJobService(jobRepo *repository.JobRepository, producer *producer.Service
 }
 
 func (jobService *JobService) GetJobsService(writer http.ResponseWriter, reader *http.Request) error {
+
 	queryParams := reader.URL.Query()
 	searchQuery := ""
 	var provinceQuery, cityQuery int64
@@ -49,15 +50,11 @@ func (jobService *JobService) GetJobsService(writer http.ResponseWriter, reader 
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
 	}
 
-	// getJob, err := jobService.JobRepository.GetJobsRepository(queryParams)
-	// if err != nil {
-	// 	return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
-	// }
-
-	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, "responseSuccess", getJobsByRedis)
+	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, getJobsByRedis)
 }
 
 func (jobService *JobService) CreateJobService(request *request.JobRequest) error {
+
 	job := &entity.JobEntity{
 		ID:          uuid.New(),
 		Title:       request.Title,
@@ -68,6 +65,7 @@ func (jobService *JobService) CreateJobService(request *request.JobRequest) erro
 		ProvinceID:  request.ProvinceID,
 		PostedBy:    request.PostedBy,
 	}
+
 	createJob, err := jobService.JobRepository.CreateJobRepository(job)
 	if err != nil {
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
@@ -76,20 +74,22 @@ func (jobService *JobService) CreateJobService(request *request.JobRequest) erro
 	if err != nil {
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, "create job is failed", http.StatusBadRequest)
 	}
-	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, "responseSuccess", createJob)
+	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, createJob)
 }
 
 func (jobService *JobService) GetJobByIDService(reader *http.Request) error {
+
 	vars := mux.Vars(reader)
 	id, _ := vars["id"]
 	job, err := jobService.JobRepository.GetJobByIDRepository(id)
 	if err != nil {
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, "job not found", http.StatusBadRequest)
 	}
-	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, "responseSuccess", job)
+	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, job)
 }
 
 func (jobService *JobService) UpdateJobService(reader *http.Request, request *request.JobRequest) error {
+
 	vars := mux.Vars(reader)
 	id, _ := vars["id"]
 	job := &entity.JobEntity{
@@ -108,12 +108,13 @@ func (jobService *JobService) UpdateJobService(reader *http.Request, request *re
 	if err != nil {
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
 	}
-	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, "responseSuccess", updateJob)
+	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, updateJob)
 }
 
 func (jobService *JobService) DeleteJobService(reader *http.Request) error {
+
 	vars := mux.Vars(reader)
-	id, _ := vars["id"]
+	id := vars["id"]
 	err := jobService.JobRepository.DeleteJobRepository(id)
 	if err != nil {
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
@@ -123,5 +124,68 @@ func (jobService *JobService) DeleteJobService(reader *http.Request) error {
 	if err != nil {
 		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
 	}
-	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, "responseSuccess", "Success delete job")
+	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, "Success delete job")
+}
+
+// Review Service
+
+func (jobService *JobService) GetReviewService(writer http.ResponseWriter, reader *http.Request) error {
+
+	vars := mux.Vars(reader)
+	id := vars["id"]
+
+	getReviews, err := jobService.JobRepository.GetReviewRepository(id)
+	if err != nil {
+		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
+	}
+
+	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, getReviews)
+}
+
+func (jobService *JobService) CreateReviewService(request *request.ReviewRequest) error {
+
+	review := &entity.ReviewEntity{
+		ID:         uuid.New(),
+		JobID:      request.JobID,
+		ReviewerID: request.ReviewerID,
+		Rating:     request.Rating,
+		Comment:    request.Comment,
+	}
+	createReview, err := jobService.JobRepository.CreateReviewRepository(review)
+	if err != nil {
+		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
+	}
+	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, createReview)
+}
+
+func (jobService *JobService) UpdateReviewService(reader *http.Request, request *request.ReviewRequest) error {
+
+	vars := mux.Vars(reader)
+	id, _ := vars["reviewId"]
+	jobID, _ := vars["id"]
+	parse, _ := uuid.Parse(jobID)
+	review := &entity.ReviewEntity{
+		JobID:      parse,
+		ReviewerID: request.ReviewerID,
+		Rating:     request.Rating,
+		Comment:    request.Comment,
+	}
+	updateJob, err := jobService.JobRepository.UpdateReviewRepository(id, review)
+	if err != nil {
+		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, "update job is failed", http.StatusBadRequest)
+	}
+	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, updateJob)
+}
+
+func (jobService *JobService) DeleteReviewService(reader *http.Request) error {
+
+	vars := mux.Vars(reader)
+	jobID, _ := vars["id"]
+	reviewID, _ := vars["reviewId"]
+	err := jobService.JobRepository.DeleteReviewRepository(jobID, reviewID)
+	if err != nil {
+		return jobService.Producer.CreateMessageError(jobService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
+	}
+
+	return jobService.Producer.CreateMessageJob(jobService.RabbitMq.Channel, "Success delete job")
 }

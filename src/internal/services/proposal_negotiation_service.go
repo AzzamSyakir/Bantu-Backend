@@ -30,11 +30,11 @@ func NewProposalService(userRepository *repository.JobRepository, producer *prod
 func (proposalService *ProposalService) GetProposalsService(reader *http.Request) error {
 	vars := mux.Vars(reader)
 	id, _ := vars["id"]
-	job, err := proposalService.JobRepository.GetProposalsRepository(id)
+	proposals, err := proposalService.JobRepository.GetProposalsRepository(id)
 	if err != nil {
 		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, "get proposal is failed", http.StatusBadRequest)
 	}
-	return proposalService.Producer.CreateMessageProposal(proposalService.RabbitMq.Channel, "responseSuccess", job)
+	return proposalService.Producer.CreateMessageProposal(proposalService.RabbitMq.Channel, proposals)
 }
 
 func (proposalService *ProposalService) CreateProposalService(request *request.ProposalRequest) error {
@@ -50,7 +50,7 @@ func (proposalService *ProposalService) CreateProposalService(request *request.P
 	if err != nil {
 		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, "create proposal is failed", http.StatusBadRequest)
 	}
-	return proposalService.Producer.CreateMessageProposal(proposalService.RabbitMq.Channel, "responseSuccess", proposal)
+	return proposalService.Producer.CreateMessageProposal(proposalService.RabbitMq.Channel, proposal)
 }
 
 func (proposalService *ProposalService) UpdateProposalService(reader *http.Request, request *request.ProposalRequest) error {
@@ -66,7 +66,7 @@ func (proposalService *ProposalService) UpdateProposalService(reader *http.Reque
 	if err != nil {
 		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, "update proposal is failed", http.StatusBadRequest)
 	}
-	return proposalService.Producer.CreateMessageProposal(proposalService.RabbitMq.Channel, "responseSuccess", proposal)
+	return proposalService.Producer.CreateMessageProposal(proposalService.RabbitMq.Channel, proposal)
 }
 
 func (proposalService *ProposalService) AcceptProposalService(id string) error {
@@ -74,5 +74,5 @@ func (proposalService *ProposalService) AcceptProposalService(id string) error {
 	if err != nil {
 		return proposalService.Producer.CreateMessageError(proposalService.RabbitMq.Channel, err.Error(), http.StatusBadRequest)
 	}
-	return proposalService.Producer.CreateMessageJob(proposalService.RabbitMq.Channel, "responseSuccess", "success accept proposal")
+	return proposalService.Producer.CreateMessageJob(proposalService.RabbitMq.Channel, "success accept proposal")
 }

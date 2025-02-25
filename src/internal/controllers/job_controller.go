@@ -65,6 +65,7 @@ func (jobController *JobController) UpdateJob(writer http.ResponseWriter, reader
 	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
 	if decodeErr != nil {
 		http.Error(writer, decodeErr.Error(), 404)
+		return
 	}
 
 	jobController.JobService.UpdateJobService(reader, request)
@@ -79,6 +80,75 @@ func (jobController *JobController) UpdateJob(writer http.ResponseWriter, reader
 func (jobController *JobController) DeleteJob(writer http.ResponseWriter, reader *http.Request) {
 
 	jobController.JobService.DeleteJobService(reader)
+	select {
+	case responseError := <-jobController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-jobController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
+}
+
+// Review Controller
+
+func (jobController *JobController) GetReview(writer http.ResponseWriter, reader *http.Request) {
+	jobController.JobService.GetReviewService(writer, reader)
+	select {
+	case responseError := <-jobController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-jobController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
+}
+
+func (jobController *JobController) CreateReview(writer http.ResponseWriter, reader *http.Request) {
+	request := &request.ReviewRequest{}
+	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
+	if decodeErr != nil {
+		http.Error(writer, decodeErr.Error(), 404)
+		return
+	}
+
+	jobController.JobService.CreateReviewService(request)
+	select {
+	case responseError := <-jobController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-jobController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
+}
+
+func (jobController *JobController) GetReviewByID(writer http.ResponseWriter, reader *http.Request) {
+
+	jobController.JobService.GetJobByIDService(reader)
+	select {
+	case responseError := <-jobController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-jobController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
+}
+
+func (jobController *JobController) UpdateReview(writer http.ResponseWriter, reader *http.Request) {
+
+	request := &request.ReviewRequest{}
+	decodeErr := json.NewDecoder(reader.Body).Decode(&request)
+	if decodeErr != nil {
+		http.Error(writer, decodeErr.Error(), 404)
+		return
+	}
+
+	jobController.JobService.UpdateReviewService(reader, request)
+	select {
+	case responseError := <-jobController.ResponseChannel.ResponseError:
+		response.NewResponse(writer, &responseError)
+	case responseSuccess := <-jobController.ResponseChannel.ResponseSuccess:
+		response.NewResponse(writer, &responseSuccess)
+	}
+}
+
+func (jobController *JobController) DeleteReview(writer http.ResponseWriter, reader *http.Request) {
+
+	jobController.JobService.DeleteReviewService(reader)
 	select {
 	case responseError := <-jobController.ResponseChannel.ResponseError:
 		response.NewResponse(writer, &responseError)

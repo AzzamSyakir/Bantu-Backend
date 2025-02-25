@@ -1,6 +1,8 @@
 package request
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 )
 
@@ -42,4 +44,13 @@ type ProposalRequest struct {
 	ProposalText  *string   `json:"proposal_text,omitempty"`
 	ProposedPrice *float64  `json:"proposed_price,omitempty"`
 	Status        string    `json:"status"`
+}
+
+type ReviewRequest struct {
+	ID         uuid.UUID `json:"id"`
+	JobID      uuid.UUID `json:"job_id"`
+	ReviewerID uuid.UUID `json:"reviewer_id"`
+	Rating     int       `json:"rating"`
+	Comment    string    `json:"comment,omitempty"`
+	CreatedAt  time.Time `json:"created_at"`
 }
