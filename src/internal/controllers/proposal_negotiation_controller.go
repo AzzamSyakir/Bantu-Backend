@@ -40,6 +40,7 @@ func (proposalController *ProposalController) CreateProposal(writer http.Respons
 
 	if decodeErr != nil {
 		http.Error(writer, decodeErr.Error(), 404)
+		return
 	}
 
 	proposalController.ProposalService.CreateProposalService(&request)
@@ -58,6 +59,7 @@ func (proposalController *ProposalController) UpdateProposal(writer http.Respons
 
 	if decodeErr != nil {
 		http.Error(writer, decodeErr.Error(), 404)
+		return
 	}
 
 	proposalController.ProposalService.UpdateProposalService(reader, &request)

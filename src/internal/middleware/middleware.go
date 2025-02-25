@@ -193,6 +193,12 @@ func (m *Middleware) ValidateRole(endpoint string, method string, role string) b
 		fmt.Sprintf(`^/api/jobs/%s/proposal/%s/accept$`, anyId, anyId): {
 			"PUT": {"company", "client"},
 		},
+		`^/api/transaction/wallet/topup$`: {
+			"POST": {"company", "client"},
+		},
+		fmt.Sprintf(`^/api/transaction/wallet/pay/%s$`, anyId): {
+			"POST": {"company", "client"},
+		},
 	}
 
 	for pattern, methodRoles := range rolePermissions {

@@ -1,5 +1,9 @@
 package request
 
+import (
+	"time"
+)
+
 type Authorization struct {
 	Id  string  `json:"id"`
 	Rl  string  `json:"rl"`
@@ -55,4 +59,13 @@ type ProposalRequest struct {
 	ProposalText  *string  `json:"proposal_text,omitempty"`
 	ProposedPrice *float64 `json:"proposed_price,omitempty"`
 	Status        string   `json:"status"`
+}
+
+type ReviewRequest struct {
+	ID         string    `json:"id"`
+	JobID      string    `json:"job_id"`
+	ReviewerID string    `json:"reviewer_id"`
+	Rating     int       `json:"rating"`
+	Comment    string    `json:"comment,omitempty"`
+	CreatedAt  time.Time `json:"created_at"`
 }

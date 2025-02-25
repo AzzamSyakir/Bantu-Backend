@@ -17,7 +17,7 @@ func NewJobRepository(db *configs.DatabaseConfig) *JobRepository {
 	return &JobRepository{Db: db}
 }
 
-func (jobRepository *JobRepository) GetJobsRepository(queryParams url.Values) ([]entity.JobEntity, error) {
+func (jobRepository *JobRepository) GetJobsRepository(queryParams url.Values) (*[]entity.JobEntity, error) {
 	query := "SELECT id, title, description, category, price, regency_id, province_id, posted_by, created_at, updated_at FROM jobs WHERE 1=1"
 	var args []interface{}
 	argIndex := 1
@@ -66,7 +66,7 @@ func (jobRepository *JobRepository) GetJobsRepository(queryParams url.Values) ([
 		jobs = append(jobs, job)
 	}
 
-	return jobs, nil
+	return &jobs, nil
 }
 
 func (jobRepository *JobRepository) CreateJobRepository(job *entity.JobEntity) (*entity.JobEntity, error) {
@@ -209,7 +209,6 @@ func (jobRepository *JobRepository) GetProposalsRepository(id string) (*[]entity
 
 		proposals = append(proposals, proposal)
 	}
-
 	return &proposals, nil
 }
 
@@ -247,11 +246,10 @@ func (jobRepository *JobRepository) UpdateProposalRepository(id string, proposal
 	`
 	err := jobRepository.Db.DB.Connection.QueryRow(
 		query,
-		proposal.JobID,
-		proposal.FreelancerID,
 		proposal.ProposalText,
 		proposal.ProposedPrice,
 		proposal.Status,
+		id,
 	).Scan(
 		&proposal.ID,
 		&proposal.JobID,
@@ -286,6 +284,97 @@ func (jobRepository *JobRepository) AcceptProposalRepository(id string) (*entity
 	}
 	return nil, nil
 }
+
+// Reviews Repository
+
+func (jobRepository *JobRepository) GetReviewRepository(id string) (*entity.ReviewEntity, error) {
+	query := `
+	SELECT id, job_id, reviewer_id, rating, comment FROM review WHERE job_id = $1;
+	`
+	var review entity.ReviewEntity
+	err := jobRepository.Db.DB.Connection.QueryRow(query, id).Scan(
+		review.ID,
+		review.JobID,
+		review.ReviewerID,
+		review.Rating,
+		review.Comment,
+		review.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &review, nil
+}
+
+func (jobRepository *JobRepository) CreateReviewRepository(review *entity.ReviewEntity) (*entity.ReviewEntity, error) {
+	query := `
+		INSERT INTO review (id, job_id, reviewer_id, rating, comment) 
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, job_id, reviewer_id, rating, comment, created_at;
+		`
+	err := jobRepository.Db.DB.Connection.QueryRow(
+		query,
+		review.ID,
+		review.JobID,
+		review.ReviewerID,
+		review.Rating,
+		review.Comment,
+	).Scan(
+		&review.ID,
+		&review.JobID,
+		&review.ReviewerID,
+		&review.Rating,
+		&review.Comment,
+		&review.CreatedAt,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return review, nil
+}
+
+func (jobRepository *JobRepository) UpdateReviewRepository(id string, review *entity.ReviewEntity) (*entity.ReviewEntity, error) {
+	query := `
+	UPDATE review SET rating = $1, comment = $2 WHERE id = $3
+	RETURNING id, job_id, reviewer_id, rating, comment, created_at;
+	`
+
+	err := jobRepository.Db.DB.Connection.QueryRow(
+		query,
+		review.Rating,
+		review.Comment,
+		id,
+	).Scan(
+		&review.ID,
+		&review.JobID,
+		&review.ReviewerID,
+		&review.Rating,
+		&review.Comment,
+		&review.CreatedAt,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	return review, nil
+}
+
+func (jobRepository *JobRepository) DeleteReviewRepository(jobID, reviewID string) error {
+	query := `
+	DELETE FROM review WHERE id = $1;
+	`
+
+	result, err := jobRepository.Db.DB.Connection.Exec(
+		query,
+		reviewID,
+	)
+	rowsAffected, err := result.RowsAffected()
+	if rowsAffected == 0 || err != nil {
+		return errors.New("delete review is failed")
+	}
+	return nil
+}
+
 func (jobRepository *JobRepository) GetProposalsById(id string) (*entity.ProposalEntity, error) {
 	var proposal entity.ProposalEntity
 

@@ -24,6 +24,7 @@ type Container struct {
 	RabbitMq   *configs.RabbitMqConfig
 	Redis      *configs.RedisConfig
 	Route      *routes.Route
+	WebSocket  *routes.Socket
 	Middleware *middleware.Middleware
 }
 
@@ -42,7 +43,7 @@ func NewContainer() *Container {
 
 	// setup repo
 	userRepository := repository.NewUserRepository()
-	chatRepository := repository.NewChatRepository()
+	chatRepository := repository.NewChatRepository(dbConfig)
 	jobRepository := repository.NewJobRepository(dbConfig)
 	transactionRepository := repository.NewTransactionRepository()
 
@@ -52,7 +53,7 @@ func NewContainer() *Container {
 	// setup services
 	authService := services.NewAuthService(userRepository, servicesProducer, envConfig, dbConfig, rabbitmqConfig)
 	userService := services.NewUserService(userRepository, servicesProducer)
-	chatService := services.NewChatService(chatRepository, servicesProducer)
+	chatService := services.NewChatService(chatRepository, servicesProducer, rabbitmqConfig)
 	jobService := services.NewJobService(jobRepository, servicesProducer, rabbitmqConfig, jobCache)
 	proposalService := services.NewProposalService(jobRepository, servicesProducer, rabbitmqConfig)
 	transactionService := services.NewTransactionService(transactionRepository, userRepository, jobRepository, servicesProducer, dbConfig, rabbitmqConfig, envConfig)
@@ -70,6 +71,13 @@ func NewContainer() *Container {
 	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
 	consumerInit.ConsumerEntrypointStart()
 	router := mux.NewRouter()
+
+	wr := routes.NewSocket(
+		router,
+		chatController,
+	)
+	webSocket := wr.RegisterSocket()
+	router.Handle("/socket.io/", webSocket)
 	routeConfig := routes.NewRoute(
 		router,
 		middleware,

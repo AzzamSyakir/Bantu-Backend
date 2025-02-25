@@ -28,6 +28,7 @@ func NewRoute(
 	transactionController *controllers.TransactionController,
 ) *Route {
 	subRouter := router.PathPrefix("/api").Subrouter()
+
 	return &Route{
 		Middleware:            middleware,
 		Router:                subRouter,
@@ -56,6 +57,14 @@ func (route *Route) Register() {
 	route.Router.HandleFunc("/jobs/{id}/proposal", route.ProposalController.CreateProposal).Methods("POST")
 	route.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}", route.ProposalController.UpdateProposal).Methods("PUT")
 	route.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}/accept", route.ProposalController.AcceptProposal).Methods("PUT")
+
+	route.Router.HandleFunc("/jobs/{id}/review", route.JobController.GetReview).Methods("GET")
+	route.Router.HandleFunc("/jobs/{id}/review", route.JobController.CreateReview).Methods("POST")
+	route.Router.HandleFunc("/jobs/{id}/review/{reviewId}", route.JobController.UpdateReview).Methods("PUT")
+	route.Router.HandleFunc("/jobs/{id}/review/{reviewId}", route.JobController.DeleteReview).Methods("DELETE")
+
+	// r.Router.HandleFunc("/jobs/{id}/payment", r.PaymentController.ProcessPayment).Methods("POST")
+	route.Router.HandleFunc("/chat/history", route.ChatController.GetChats).Methods("GET")
 
 	route.Router.HandleFunc("/transaction/wallet/topup", route.TransactionController.TopUpBalance).Methods("POST")
 	route.Router.HandleFunc("/transaction/wallet/withdraw", route.TransactionController.WithdrawBalance).Methods("POST")
