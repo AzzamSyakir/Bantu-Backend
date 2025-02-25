@@ -53,8 +53,9 @@ jobs:
           docker compose down --remove-orphans || true
           docker rm -f bukanasa/bantu-backend:latest || true
 
-      - name: Run Docker Compose
+      - name: Run Docker
         run: |
+          mv .env ../../../bantu-backend/
           cd 
           cd program/bantu-backend
           docker compose --env-file .env -f docker/docker-compose.yml up -d
