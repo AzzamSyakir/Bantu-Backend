@@ -26,67 +26,98 @@
             <button onclick="sendMessage()" class="bg-blue-500 text-white px-4 rounded-r">Kirim</button>
         </div>
     </div>
-
+    
     <script>
-        let socket;
-        let senderID, receiverID;
+    let socket;
+    let senderID, receiverID;
 
-        function joinChat() {
-            senderID = document.getElementById("senderID").value.trim();
-            receiverID = document.getElementById("receiverID").value.trim();
+    function joinChat() {
+        senderID = document.getElementById("senderID").value.trim();
+        receiverID = document.getElementById("receiverID").value.trim();
 
-            if (!senderID || !receiverID) {
-                alert("Masukkan Sender ID dan Receiver ID!");
-                return;
-            }
-
-            socket = io("ws://localhost:8080/socket.io", { 
-                transports: ["websocket"],
-                query: { sender_id: senderID, receiver_id: receiverID } });
-
-            fetch(`http://localhost:8080/api/chat/history?sender_id=${senderID}&receiver_id=${receiverID}`)
-                .then(response => response.json())
-                .then(data => {
-                    const chatBox = document.getElementById("chatBox");
-                    
-                    chatBox.innerHTML = "";
-                    data?.data.forEach(msg => {
-                        displayMessage(msg.sender_id, msg.message);
-                    });
-                    console.log(data);
-                })   
-                .catch(error => console.error("Gagal mengambil history:", error));
-
-            socket.on("chat_message", (sender, message) => {
-                displayMessage(sender, message);
-            });
-
-            document.getElementById("messageInput").focus();
+        if (!senderID || !receiverID) {
+            alert("Masukkan Sender ID dan Receiver ID!");
+            return;
         }
 
-        function sendMessage() {
-            const message = document.getElementById("messageInput").value.trim();
-            if (!message || !socket) return;
-
-            socket.emit("chat_message", message, senderID, receiverID);
-            displayMessage(senderID, message, true);
-            document.getElementById("messageInput").value = "";
+        // Pastikan hanya satu koneksi WebSocket yang terbuka
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.close();
         }
 
-        function displayMessage(sender, message, isSelf = false) {
-            const chatBox = document.getElementById("chatBox");
-            const msgClass = isSelf ? "bg-blue-500 text-white self-end" : "bg-gray-300 self-start";
+        // Inisialisasi WebSocket
+        socket = new WebSocket(`ws://localhost:8080/api/ws?sender_id=${senderID}&receiver_id=${receiverID}`);
 
-            chatBox.innerHTML += `
-                <div class="flex ${isSelf ? "justify-end" : "justify-start"} mb-2">
-                    <div class="p-2 rounded-lg ${msgClass} max-w-xs">
-                        <p>${message}</p>
-                    </div>
-                </div>
-            `;
+        socket.onopen = () => {
+            console.log("✅ Connected to WebSocket");
+            loadChatHistory();
+        };
 
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+        socket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+
+            // Hindari menampilkan pesan dua kali
+            if (data.sender_id === senderID) return;
+
+            displayMessage(data.sender_id, data.message);
+        };
+
+        socket.onerror = (error) => {
+            console.error("❌ WebSocket Error:", error);
+        };
+
+        socket.onclose = () => {
+            console.log("🔌 WebSocket Disconnected");
+        };
+
+        document.getElementById("messageInput").focus();
+    }
+
+    function loadChatHistory() {
+        fetch(`http://localhost:8080/api/chat/history?sender_id=${senderID}&receiver_id=${receiverID}`)
+            .then(response => response.json())
+            .then(data => {
+                const chatBox = document.getElementById("chatBox");
+                chatBox.innerHTML = "";
+                data?.data.forEach(msg => {
+                    displayMessage(msg.sender_id, msg.message);
+                });
+            })
+            .catch(error => console.error("Gagal mengambil history:", error));
+    }
+
+    function sendMessage() {
+        const message = document.getElementById("messageInput").value.trim();
+        if (!message || !socket || socket.readyState !== WebSocket.OPEN) return;
+
+        const messageData = JSON.stringify({
+            sender_id: senderID,
+            receiver_id: receiverID,
+            message: message
+        });
+        console.log(messageData);
+        
+        socket.send(messageData);
+        setTimeout(loadChatHistory, 500)
+        document.getElementById("messageInput").value = "";
+    }
+
+    function displayMessage(sender, message) {
+        const chatBox = document.getElementById("chatBox");
+        const isSelf = sender === senderID;
+        const msgClass = isSelf ? "bg-blue-500 text-white self-end" : "bg-gray-300 self-start";
+
+        const msgElement = document.createElement("div");
+        msgElement.classList.add("flex", isSelf ? "justify-end" : "justify-start", "mb-2");
+        msgElement.innerHTML = `
+            <div class="p-2 rounded-lg ${msgClass} max-w-xs">
+                <p>${message}</p>
+            </div>
+        `;
+
+        chatBox.appendChild(msgElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
     </script>
 </body>
 </html>

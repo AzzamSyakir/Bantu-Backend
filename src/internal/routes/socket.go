@@ -2,98 +2,110 @@ package routes
 
 import (
 	"bantu-backend/src/internal/controllers"
-	"fmt"
 	"log"
-	"net/url"
+	"net/http"
+	"sync"
 
-	socketio "github.com/googollee/go-socket.io"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
-type Socket struct {
+type WebSocketServer struct {
 	Router         *mux.Router
 	ChatController *controllers.ChatController
+	Clients        map[string]*websocket.Conn
+	Rooms          map[string]map[*websocket.Conn]bool
+	Mutex          sync.Mutex
 }
 
-func NewSocket(
-	router *mux.Router,
-	chatController *controllers.ChatController,
-) *Socket {
-	return &Socket{
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool { return true },
+}
+
+func NewWebSocketServer(router *mux.Router, chatController *controllers.ChatController) *WebSocketServer {
+	return &WebSocketServer{
 		Router:         router,
 		ChatController: chatController,
+		Clients:        make(map[string]*websocket.Conn),
+		Rooms:          make(map[string]map[*websocket.Conn]bool),
 	}
 }
 
-func (socket *Socket) RegisterSocket() *socketio.Server {
-	server := socketio.NewServer(nil)
-	log.Println("Socket.IO server started")
+func (ws *WebSocketServer) HandleWebSocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		log.Println("WebSocket upgrade failed:", err)
+		return
+	}
+	defer conn.Close()
 
-	server.OnConnect("/", func(s socketio.Conn) error {
-		rawQuery := s.URL().RawQuery
-		params, err := url.ParseQuery(rawQuery)
+	senderID := r.URL.Query().Get("sender_id")
+	receiverID := r.URL.Query().Get("receiver_id")
+
+	if senderID == "" || receiverID == "" {
+		log.Println("Missing sender_id or receiver_id")
+		return
+	}
+
+	roomID, err := ws.ChatController.GetOrCreateRoom(senderID, receiverID)
+	if err != nil {
+		log.Println("Error creating room:", err)
+		return
+	}
+
+	ws.Mutex.Lock()
+	if ws.Rooms[roomID] == nil {
+		ws.Rooms[roomID] = make(map[*websocket.Conn]bool)
+	}
+	ws.Rooms[roomID][conn] = true
+	ws.Mutex.Unlock()
+
+	log.Println("User connected:", senderID, "to room:", roomID)
+
+	for {
+		var msg map[string]string
+		err := conn.ReadJSON(&msg)
 		if err != nil {
-			return fmt.Errorf("Failed to parse query params: %v", err)
+			log.Println("Read error:", err)
+			break
 		}
 
-		senderID := params.Get("sender_id")
-		receiverID := params.Get("receiver_id")
+		senderID := msg["sender_id"]
+		receiverID := msg["receiver_id"]
+		message := msg["message"]
 
-		if senderID == "" || receiverID == "" {
-			return fmt.Errorf("Missing sender_id or receiver_id")
+		if senderID == "" || receiverID == "" || message == "" {
+			log.Println("Invalid message data")
+			continue
 		}
-		room, _ := socket.ChatController.GetOrCreateRoom(senderID, receiverID)
-		log.Println("User connected:", s.ID())
-		s.Join(room)
-		return nil
-	})
 
-	server.OnEvent("/", "chat_message", func(s socketio.Conn, data map[string]string) {
-		senderID := data["sender_id"]
-		receiverID := data["receiver_id"]
-
-		roomID, err := socket.ChatController.GetOrCreateRoom(data["sender_id"], data["receiver_id"])
+		err = ws.ChatController.CreateChat(roomID, senderID, receiverID, message)
 		if err != nil {
-			log.Println("Invalid room_id:", data["room_id"])
-			return
+			log.Println("Failed to save message:", err)
+			continue
 		}
 
-		message := data["message"]
-		if message == "" {
-			log.Println("Empty message received")
-			return
-		}
-
-		err = socket.ChatController.CreateChat(roomID, senderID, receiverID, message)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-
-		}
-		s.Emit("chat_response", map[string]string{
-			"status":  "success",
-			"message": "Message success send: " + message,
-		})
-
-		server.BroadcastToRoom("/", roomID, "chat_message", map[string]string{
+		ws.BroadcastMessage(roomID, map[string]string{
 			"sender_id": senderID,
 			"message":   message,
 		})
+	}
 
-		log.Println("Message sent to room:", roomID, "from:", senderID)
-	})
+	ws.Mutex.Lock()
+	delete(ws.Rooms[roomID], conn)
+	ws.Mutex.Unlock()
+}
 
-	server.OnEvent("/", "leave_room", func(s socketio.Conn, data map[string]string) {
-		room, _ := socket.ChatController.GetOrCreateRoom(data["sender_id"], data["receiver_id"])
-		roomStr := room
-		s.Leave(roomStr)
-		log.Println("User left room:", roomStr)
-	})
+func (ws *WebSocketServer) BroadcastMessage(roomID string, message map[string]string) {
+	ws.Mutex.Lock()
+	defer ws.Mutex.Unlock()
 
-	go func() {
-		if err := server.Serve(); err != nil {
-			log.Fatalf("Socket.IO server failed: %v", err)
+	for client := range ws.Rooms[roomID] {
+		err := client.WriteJSON(message)
+		if err != nil {
+			log.Println("Broadcast error:", err)
+			client.Close()
+			delete(ws.Rooms[roomID], client)
 		}
-	}()
-	return server
+	}
 }

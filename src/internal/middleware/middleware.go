@@ -223,9 +223,9 @@ func (m *Middleware) ValidateRole(endpoint string, method string, role string) b
 
 func (middleware *Middleware) ApplyMiddleware(next http.Handler) http.Handler {
 	handler := middleware.CorsMiddleware(next)
-	handler = middleware.RateLimitMiddleware(handler)
-	handler = middleware.InputValidationMiddleware(handler)
-	handler = middleware.ValidateAuthorizationHeader(handler)
+	// handler = middleware.RateLimitMiddleware(handler)
+	// handler = middleware.InputValidationMiddleware(handler)
+	// handler = middleware.ValidateAuthorizationHeader(handler)
 	fmt.Println("middleware applied")
 	return handler
 }
