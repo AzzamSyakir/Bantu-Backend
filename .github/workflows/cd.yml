@@ -14,7 +14,6 @@ jobs:
       - name: Create .env file
         run: |
           cat <<EOF > .env
-          GATEWAY_APP_HOST=${{ secrets.GATEWAY_APP_HOST }}
           GATEWAY_APP_PORT=${{ secrets.GATEWAY_APP_PORT }}
           SWAGGER_PORT=${{ secrets.SWAGGER_PORT }}
 
@@ -47,12 +46,14 @@ jobs:
         run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
       - name: Pull Docker Image
-        run: docker pull bukanasa/bantu-backend:latest
+        run: docker pull bukanasa/Bantu-Backend:latest
 
       - name: Stop and remove old Docker containers
         run: |
           docker compose down --remove-orphans || true
-          docker rm -f bantu-backend || true
+          docker rm -f Bantu-Backend || true
 
       - name: Run Docker Compose
-        run: docker compose up -d --build
+        run: |
+          cd program
+          docker compose --env-file .env -f docker/docker-compose.yml up -d
