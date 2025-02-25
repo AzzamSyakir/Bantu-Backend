@@ -24,8 +24,8 @@ type Container struct {
 	RabbitMq   *configs.RabbitMqConfig
 	Redis      *configs.RedisConfig
 	Route      *routes.Route
-	WebSocket  *routes.Socket
 	Middleware *middleware.Middleware
+	WebSocket  *routes.WebSocketServer
 }
 
 func NewContainer() *Container {
@@ -71,13 +71,7 @@ func NewContainer() *Container {
 	consumerInit := consumer.NewConsumerEntrypointInit(controllerConsumer, rabbitmqConfig)
 	consumerInit.ConsumerEntrypointStart()
 	router := mux.NewRouter()
-
-	wr := routes.NewSocket(
-		router,
-		chatController,
-	)
-	webSocket := wr.RegisterSocket()
-	router.Handle("/socket.io/", webSocket)
+	websocket := routes.NewWebSocketServer(router, chatController)
 	routeConfig := routes.NewRoute(
 		router,
 		middleware,
@@ -96,6 +90,7 @@ func NewContainer() *Container {
 		Redis:      redisConfig,
 		Route:      routeConfig,
 		Middleware: middleware,
+		WebSocket:  websocket,
 	}
 	return container
 }
