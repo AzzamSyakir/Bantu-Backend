@@ -6,6 +6,7 @@ import (
 	"bantu-backend/src/internal/rabbitmq/producer"
 	"bantu-backend/src/internal/repository"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -45,6 +46,8 @@ func (chatService *ChatService) GetChatsService(reader *http.Request) error {
 func (chatService *ChatService) GetOrCreateRoomService(senderID, receiverID string) (string, error) {
 
 	chat, err := chatService.ChatRepository.GetOrCreateRoomRepository(senderID, receiverID)
+	fmt.Println(chat)
+
 	if err != nil {
 		return "", err
 	}

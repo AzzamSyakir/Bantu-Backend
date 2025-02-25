@@ -20,11 +20,6 @@ func NewChatController(authService *services.ChatService, responseChannel *respo
 }
 
 func (chatController *ChatController) GetChats(writer http.ResponseWriter, reader *http.Request) {
-	// chatController.ChatService.GetChatsService(reader)
-	if chatController.ChatService == nil {
-		http.Error(writer, "ChatService is not initialized", http.StatusInternalServerError)
-		return
-	}
 	chatController.ChatService.GetChatsService(reader)
 	select {
 	case responseError := <-chatController.ResponseChannel.ResponseError:
@@ -42,8 +37,8 @@ func (chatController *ChatController) GetOrCreateRoom(senderID, receiverID strin
 func (chatController *ChatController) CreateChat(roomID, senderID, receiverID, message string) error {
 	chatController.ChatService.CreateChatService(roomID, senderID, receiverID, message)
 	select {
-	case <-chatController.ResponseChannel.ResponseError:
-		return errors.New("create chat is failed")
+	case responseError := <-chatController.ResponseChannel.ResponseError:
+		return errors.New(responseError.Message)
 	case <-chatController.ResponseChannel.ResponseSuccess:
 		return nil
 	}

@@ -4,6 +4,7 @@ import (
 	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/entity"
 	"database/sql"
+	"errors"
 
 	"github.com/google/uuid"
 )
@@ -58,41 +59,32 @@ func (chatRepository *ChatRepository) GetChatsRepository(senderID string, receiv
 
 func (chatRepository *ChatRepository) GetOrCreateRoomRepository(senderID, receiverID string) (string, error) {
 	query := `
-		SELECT id from rooms
-		WHERE (sender_id = $1 AND receiver_id = $2 ) OR (sender_id = $3 AND receiver_id = $4);
+		SELECT id FROM rooms
+		WHERE (sender_id = $1 AND receiver_id = $2) OR (sender_id = $3 AND receiver_id = $4);
 	`
 	var id string
 
-	err := chatRepository.Db.DB.Connection.QueryRow(
-		query,
-		senderID,
-		receiverID,
-		receiverID,
-		senderID,
-	).Scan(&id)
+	err := chatRepository.Db.DB.Connection.QueryRow(query, senderID, receiverID, receiverID, senderID).Scan(&id)
 
-	if err == sql.ErrNoRows {
+	if errors.Is(err, sql.ErrNoRows) {
 		id = uuid.NewString()
 		query = `INSERT INTO rooms (id, sender_id, receiver_id) VALUES ($1, $2, $3)`
-		_, err := chatRepository.Db.DB.Connection.Exec(
-			query,
-			senderID,
-			receiverID,
-		)
+		_, err := chatRepository.Db.DB.Connection.Exec(query, id, senderID, receiverID)
 		if err != nil {
 			return "", err
 		}
+		return id, nil
 	} else if err != nil {
 		return "", err
 	}
 
 	return id, nil
 }
-
 func (chatRepository *ChatRepository) CreateChatRepository(chat *entity.ChatEntity) (*entity.ChatEntity, error) {
 	query := `
 		INSERT INTO chat (id, room_id, sender_id, receiver_id, message)
-		VALUES ($1, $2, $3, $4);
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, created_at;
 	`
 
 	err := chatRepository.Db.DB.Connection.QueryRow(
@@ -102,10 +94,8 @@ func (chatRepository *ChatRepository) CreateChatRepository(chat *entity.ChatEnti
 		chat.SenderID,
 		chat.ReceiverID,
 		chat.Message,
-	).Scan(
-		&chat.ID,
-		&chat.CreatedAt,
-	)
+	).Scan(&chat.ID, &chat.CreatedAt)
+
 	if err != nil {
 		return nil, err
 	}
