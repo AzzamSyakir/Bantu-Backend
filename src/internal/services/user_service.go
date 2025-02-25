@@ -1,12 +1,14 @@
 package services
 
 import (
+	"bantu-backend/src/configs"
 	"bantu-backend/src/internal/rabbitmq/producer"
 	"bantu-backend/src/internal/repository"
 )
 
 type UserService struct {
 	UserRepository *repository.UserRepository
+	RabbitMq       *configs.RabbitMqConfig
 	Producer       *producer.ServicesProducer
 }
 

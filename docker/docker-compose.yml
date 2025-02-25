@@ -51,7 +51,8 @@ services:
     ports:
       - ${DB_PORT}:5432
     volumes:
-      - ./db/postgres/:/docker-entrypoint-initdb.d
+      - ./db/postgres/migration/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./db/postgres/data/:/docker-entrypoint-initdb.d/data/
       - app-db:/var/lib/postgresql/data
 
   swagger-ui:
@@ -59,7 +60,7 @@ services:
     container_name: swagger-ui
     restart: unless-stopped
     ports:
-      - ${SWAGGER_PORT}:8090
+      - ${SWAGGER_PORT}:8080
     depends_on:
       - app
     volumes:

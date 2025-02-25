@@ -2,13 +2,13 @@ package routes
 
 import (
 	"bantu-backend/src/internal/controllers"
-	"bantu-backend/src/internal/middlewares"
+	"bantu-backend/src/internal/middleware"
 
 	"github.com/gorilla/mux"
 )
 
 type Route struct {
-	Middleware            *middlewares.Middleware
+	Middleware            *middleware.Middleware
 	Router                *mux.Router
 	AuthController        *controllers.AuthController
 	ChatController        *controllers.ChatController
@@ -20,7 +20,7 @@ type Route struct {
 
 func NewRoute(
 	router *mux.Router,
-	middleware *middlewares.Middleware,
+	middleware *middleware.Middleware,
 	authController *controllers.AuthController,
 	chatController *controllers.ChatController,
 	jobController *controllers.JobController,
@@ -28,6 +28,7 @@ func NewRoute(
 	transactionController *controllers.TransactionController,
 ) *Route {
 	subRouter := router.PathPrefix("/api").Subrouter()
+
 	return &Route{
 		Middleware:            middleware,
 		Router:                subRouter,
@@ -39,16 +40,33 @@ func NewRoute(
 	}
 }
 
-func (r *Route) Register() {
-	// eg
-	// r.Router.HandleFunc("/jobs", r.JobController.CreateJob).Methods("POST")
-	// r.Router.HandleFunc("/jobs", r.JobController.GetJobs).Methods("GET")
-	// r.Router.HandleFunc("/jobs/{id}", r.JobController.GetJobByID).Methods("GET")
-	// r.Router.HandleFunc("/jobs/{id}", r.JobController.UpdateJob).Methods("PUT")
-	// r.Router.HandleFunc("/jobs/{id}", r.JobController.DeleteJob).Methods("DELETE")
-	// r.Router.HandleFunc("/jobs/{id}/apply", r.JobController.ApplyJob).Methods("POST")
-	// r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.CreateProposal).Methods("POST")
-	// r.Router.HandleFunc("/jobs/{id}/proposals", r.ProposalController.GetProposals).Methods("GET")
-	// r.Router.HandleFunc("/jobs/{id}/proposals/{proposalId}", r.ProposalController.UpdateProposal).Methods("PUT")
+func (route *Route) Register() {
+	route.Router.HandleFunc("/register", route.AuthController.Register).Methods("POST")
+	route.Router.HandleFunc("/login", route.AuthController.Login).Methods("POST")
+
+	route.Router.HandleFunc("/admin/register", route.AuthController.AdminRegister).Methods("POST")
+	route.Router.HandleFunc("/admin/login", route.AuthController.AdminLogin).Methods("POST")
+
+	route.Router.HandleFunc("/jobs", route.JobController.GetJobs).Methods("GET")
+	route.Router.HandleFunc("/jobs", route.JobController.CreateJob).Methods("POST")
+	route.Router.HandleFunc("/jobs/{id}", route.JobController.GetJobByID).Methods("GET")
+	route.Router.HandleFunc("/jobs/{id}", route.JobController.UpdateJob).Methods("PUT")
+	route.Router.HandleFunc("/jobs/{id}", route.JobController.DeleteJob).Methods("DELETE")
+
+	route.Router.HandleFunc("/jobs/{id}/proposals", route.ProposalController.GetProposals).Methods("GET")
+	route.Router.HandleFunc("/jobs/{id}/proposal", route.ProposalController.CreateProposal).Methods("POST")
+	route.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}", route.ProposalController.UpdateProposal).Methods("PUT")
+	route.Router.HandleFunc("/jobs/{id}/proposal/{proposalId}/accept", route.ProposalController.AcceptProposal).Methods("PUT")
+
+	route.Router.HandleFunc("/jobs/{id}/review", route.JobController.GetReview).Methods("GET")
+	route.Router.HandleFunc("/jobs/{id}/review", route.JobController.CreateReview).Methods("POST")
+	route.Router.HandleFunc("/jobs/{id}/review/{reviewId}", route.JobController.UpdateReview).Methods("PUT")
+	route.Router.HandleFunc("/jobs/{id}/review/{reviewId}", route.JobController.DeleteReview).Methods("DELETE")
+
 	// r.Router.HandleFunc("/jobs/{id}/payment", r.PaymentController.ProcessPayment).Methods("POST")
+	route.Router.HandleFunc("/chat/history", route.ChatController.GetChats).Methods("GET")
+
+	route.Router.HandleFunc("/transaction/wallet/topup", route.TransactionController.TopUpBalance).Methods("POST")
+	route.Router.HandleFunc("/transaction/wallet/withdraw", route.TransactionController.WithdrawBalance).Methods("POST")
+	route.Router.HandleFunc("/transaction/wallet/pay/{proposalId}", route.TransactionController.PayFreelancer).Methods("POST")
 }
