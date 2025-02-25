@@ -3,6 +3,8 @@ name: CI Pipeline
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
@@ -15,6 +17,7 @@ jobs:
       - name: Create .env file
         run: |
           cat <<EOF > .env
+          GATEWAY_APP_HOST=${{ secrets.GATEWAY_APP_HOST }}
           GATEWAY_APP_PORT=${{ secrets.GATEWAY_APP_PORT }}
           SWAGGER_PORT=${{ secrets.SWAGGER_PORT }}
 
