@@ -47,12 +47,12 @@ jobs:
         run: echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
 
       - name: Pull Docker Image
-        run: docker pull bukanasa/Bantu-Backend:latest
+        run: docker pull bukanasa/bantu-backend:latest
 
       - name: Stop and remove old Docker containers
         run: |
           docker compose down --remove-orphans || true
-          docker rm -f Bantu-Backend || true
+          docker rm -f bantu-backend || true
 
       - name: Run Docker Compose
         run: docker compose up -d --build
