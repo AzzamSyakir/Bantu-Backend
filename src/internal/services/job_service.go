@@ -145,7 +145,7 @@ func (jobService *JobService) GetReviewService(writer http.ResponseWriter, reade
 func (jobService *JobService) CreateReviewService(request *request.ReviewRequest) error {
 
 	review := &entity.ReviewEntity{
-		ID:         uuid.New(),
+		ID:         uuid.NewString(),
 		JobID:      request.JobID,
 		ReviewerID: request.ReviewerID,
 		Rating:     request.Rating,
@@ -163,9 +163,8 @@ func (jobService *JobService) UpdateReviewService(reader *http.Request, request 
 	vars := mux.Vars(reader)
 	id, _ := vars["reviewId"]
 	jobID, _ := vars["id"]
-	parse, _ := uuid.Parse(jobID)
 	review := &entity.ReviewEntity{
-		JobID:      parse,
+		JobID:      jobID,
 		ReviewerID: request.ReviewerID,
 		Rating:     request.Rating,
 		Comment:    request.Comment,

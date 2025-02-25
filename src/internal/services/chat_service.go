@@ -53,15 +53,11 @@ func (chatService *ChatService) GetOrCreateRoomService(senderID, receiverID stri
 }
 
 func (chatService *ChatService) CreateChatService(roomID, senderID, receiverID, message string) error {
-	parseRoom, err := uuid.Parse(roomID)
-	parseSen, err := uuid.Parse(senderID)
-	parseRec, err := uuid.Parse(receiverID)
-
 	chat := entity.ChatEntity{
-		ID:         uuid.New(),
-		RoomID:     parseRoom,
-		SenderID:   parseSen,
-		ReceiverID: parseRec,
+		ID:         uuid.NewString(),
+		RoomID:     roomID,
+		SenderID:   senderID,
+		ReceiverID: receiverID,
 		Message:    message,
 	}
 	getJobsByRedis, err := chatService.ChatRepository.CreateChatRepository(&chat)

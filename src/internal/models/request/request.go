@@ -2,8 +2,6 @@ package request
 
 import (
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type Authorization struct {
@@ -59,9 +57,9 @@ type ProposalRequest struct {
 }
 
 type ReviewRequest struct {
-	ID         uuid.UUID `json:"id"`
-	JobID      uuid.UUID `json:"job_id"`
-	ReviewerID uuid.UUID `json:"reviewer_id"`
+	ID         string    `json:"id"`
+	JobID      string    `json:"job_id"`
+	ReviewerID string    `json:"reviewer_id"`
 	Rating     int       `json:"rating"`
 	Comment    string    `json:"comment,omitempty"`
 	CreatedAt  time.Time `json:"created_at"`

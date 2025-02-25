@@ -47,7 +47,7 @@ func (chatRepository *ChatRepository) GetChatsRepository(senderID string, receiv
 		}
 
 		if readAt.Valid {
-			job.ReadAt = readAt.Time
+			job.ReadAt = &readAt.Time
 		}
 
 		chats = append(chats, job)
