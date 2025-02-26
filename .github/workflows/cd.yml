@@ -48,10 +48,14 @@ jobs:
       - name: Pull Docker Image
         run: docker pull bukanasa/bantu-backend:latest
 
-      - name: Stop and remove old Docker image & containers
+            
+      - name: Stop and Remove Old Containers
         run: |
           docker compose --env-file ./.env -f ./docker/docker-compose.yml down --remove-orphans || true
-          docker rm -f bukanasa/bantu-backend || true
+      
+      - name: Remove Old Docker Image
+        run: |
+          docker images --filter "reference=bukanasa/bantu-backend" --format "{{.ID}}" | xargs -r docker rmi -f || true
 
       - name: Run Docker
         run: |
