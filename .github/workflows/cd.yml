@@ -56,7 +56,11 @@ jobs:
       - name: Remove Old Docker Image
         run: |
           docker images --filter "reference=bukanasa/bantu-backend" --format "{{.ID}}" | xargs -r docker rmi -f || true
-
+          
+      - name: Remove Dangling Images
+        run: |
+          docker images -f "dangling=true" -q | xargs -r docker rmi -f || true
+          
       - name: Run Docker
         run: |
           mv .env ~/program/bantu-backend 
